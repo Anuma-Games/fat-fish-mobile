@@ -33,6 +33,9 @@ El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) corre en cada
 - Ramas: `main` (producción), `develop` (integración) y `feature/FF-<ticket>-<descripcion>`.
 - Todo cambio entra por Pull Request con una aprobación y el CI en verde.
 - Commits y ramas llevan la clave del ticket de Jira (`FF-…`).
+- `main` y `develop` están protegidas: los checks *Analizar y probar* y *Compilar APK* deben estar en verde.
+- `CODEOWNERS` asigna revisores automáticamente y la plantilla de PR pide el ticket de Jira y cómo probar el cambio.
+- Dependabot revisa cada semana las dependencias (paquetes de Dart y acciones de GitHub) y abre PRs hacia `develop`.
 
 ## Equipo
 
