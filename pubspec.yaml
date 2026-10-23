@@ -24,6 +24,7 @@ dev_dependencies:
   mocktail: ^1.0.5
   drift_dev: ^2.35.1
   build_runner: ^2.16.1
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -40,3 +41,13 @@ flutter:
         - asset: assets/fonts/Geist-Regular.ttf
         - asset: assets/fonts/Geist-SemiBold.ttf
           weight: 600
+
+# App icon: regenerate with `dart run flutter_launcher_icons` after changing assets/icon.
+flutter_launcher_icons:
+  image_path: assets/icon/icon.png
+  android: true
+  adaptive_icon_background: "#0B1416"
+  adaptive_icon_foreground: assets/icon/icon_foreground.png
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#0B1416"
