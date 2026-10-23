@@ -1,22 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'app/home_screen.dart';
-import 'app/theme.dart';
+import 'app/app.dart';
+import 'core/config/app_config.dart';
+import 'core/network/api_client.dart';
+import 'core/storage/app_database.dart';
 
+/// Composition root: shared services are created here and handed down with RepositoryProvider.
+/// Each feature adds its data sources, repositories and use cases to this list.
 void main() {
-  runApp(const FatFishApp());
-}
+  final apiClient = ApiClient(
+    baseUrl: AppConfig.apiBaseUrl,
+    apiKey: AppConfig.apiKey,
+    timeout: AppConfig.requestTimeout,
+  );
 
-class FatFishApp extends StatelessWidget {
-  const FatFishApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Fat Fish',
-      debugShowCheckedModeBanner: false,
-      theme: buildFatFishTheme(),
-      home: const HomeScreen(),
-    );
-  }
+  runApp(
+    MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<ApiClient>(
+          create: (_) => apiClient,
+          dispose: (client) => client.close(),
+        ),
+        RepositoryProvider<AppDatabase>(
+          create: (_) => AppDatabase(),
+          dispose: (db) => db.close(),
+        ),
+      ],
+      child: const FatFishApp(),
+    ),
+  );
 }
