@@ -7,6 +7,8 @@ class RankingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Transparent so the casino pattern of AppShell shows through.
+      backgroundColor: Colors.transparent,
       appBar: AppBar(title: const Text('Ranking')),
       body: const ComingSoon(
         title: 'Ranking mundial',

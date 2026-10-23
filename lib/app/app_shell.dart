@@ -1,7 +1,10 @@
+import 'package:fat_fish_mobile/core/presentation/widgets/casino_background.dart';
+import 'package:fat_fish_mobile/core/presentation/widgets/pixel_icon.dart';
+import 'package:fat_fish_mobile/core/theme/tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Bottom navigation around the three tabs.
+/// Casino background and bottom navigation around the three tabs.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
 
@@ -10,31 +13,38 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        // Tapping the current tab again returns it to its first screen.
-        onDestinationSelected: (index) => navigationShell.goBranch(
-          index,
-          initialLocation: index == navigationShell.currentIndex,
+      body: CasinoBackground(child: navigationShell),
+      // Gold top border, like the bottom border of the app bar.
+      bottomNavigationBar: DecoratedBox(
+        // In front: NavigationBar paints its own background over a back decoration.
+        position: DecorationPosition.foreground,
+        decoration: const BoxDecoration(
+          border: Border(
+            top: BorderSide(color: FatFishColors.gold600, width: 2),
+          ),
         ),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.folder_open_outlined),
-            selectedIcon: Icon(Icons.folder_open),
-            label: 'Expediente',
+        child: NavigationBar(
+          selectedIndex: navigationShell.currentIndex,
+          // Tapping the current tab again returns it to its first screen.
+          onDestinationSelected: (index) => navigationShell.goBranch(
+            index,
+            initialLocation: index == navigationShell.currentIndex,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.leaderboard_outlined),
-            selectedIcon: Icon(Icons.leaderboard),
-            label: 'Ranking',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Mi jugador',
-          ),
-        ],
+          destinations: const [
+            NavigationDestination(
+              icon: PixelIcon(PixelIcons.dossier),
+              label: 'Expediente',
+            ),
+            NavigationDestination(
+              icon: PixelIcon(PixelIcons.ranking),
+              label: 'Ranking',
+            ),
+            NavigationDestination(
+              icon: PixelIcon(PixelIcons.player),
+              label: 'Mi jugador',
+            ),
+          ],
+        ),
       ),
     );
   }

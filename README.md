@@ -81,7 +81,7 @@ El código se organiza por *feature* y, dentro de cada una, en las capas de *cle
 lib/
 ├── main.dart                 # raíz de composición: crea los servicios y los entrega con RepositoryProvider
 ├── app/                      # FatFishApp, tema, rutas y barra de navegación
-├── core/                     # config, ApiClient, AppDatabase y widgets comunes
+├── core/                     # config, ApiClient, AppDatabase, tokens de diseño y widgets comunes
 └── features/                 # expediente, jugador y ranking
     └── <feature>/
         ├── data/             # DTOs, fuentes de datos (API y caché) e implementación del repositorio
@@ -141,17 +141,21 @@ stateDiagram-v2
 
 ## 7. Experiencia de usuario
 
-La app usa el estilo del casino clandestino del juego, igual que la PWA. Tiene tres pestañas: **Expediente**,
-**Ranking** y **Mi jugador**.
+La app usa la guía de estilo de la PWA: fondo con el patrón de rombos, barras de paño con borde dorado e íconos pixel
+art de 12 × 12 (`PixelIcon`). Tiene tres pestañas: **Expediente**, **Ranking** y **Mi jugador**. Los valores están en
+`lib/core/theme/tokens.dart` con los mismos nombres que `tokens.css`, y `lib/app/theme/app_theme.dart` los aplica a los
+componentes de Material, así que las pantallas no escriben colores ni medidas.
 
 | Uso                | Valor                                                                                                               |
 |--------------------|---------------------------------------------------------------------------------------------------------------------|
 | Fondo y tarjetas   | `#0B1416` y `#172A25`                                                                                               |
 | Paño (barras)      | `#0D3522` y `#105030`                                                                                               |
 | Dorado             | `#E8B850`                                                                                                           |
-| Victoria / derrota | `#6FD39A` / `#F08A7E`                                                                                               |
+| Victoria / derrota | `#6FD39A` / `#882020` (ficha) y `#F08A7E` (cifras)                                                                  |
 | Texto              | `#F2E8CC` y `#9AA8A2`                                                                                               |
 | Fuentes            | **Jersey 10** (títulos), **Press Start 2P** (etiquetas) y **Geist** (texto), en `assets/fonts/` con su licencia OFL |
+
+El ícono de la app sale de `assets/icon/` y se regenera con `dart run flutter_launcher_icons`.
 
 ## 8. Integración continua y flujo de trabajo
 
