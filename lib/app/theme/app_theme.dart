@@ -37,6 +37,9 @@ ThemeData buildFatFishTheme() {
       elevation: 0,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
+      // Left aligned on every platform, like the PWA top bar (iOS centers it by default).
+      centerTitle: false,
+      titleSpacing: FatFishSpacing.s4,
       titleTextStyle: textTheme.titleLarge,
       shape: const Border(
         bottom: BorderSide(color: FatFishColors.gold600, width: 2),
@@ -57,8 +60,10 @@ ThemeData buildFatFishTheme() {
         ),
       ),
       labelTextStyle: WidgetStateProperty.resolveWith(
+        // .nav a: Press Start 2P 10 px; AppShell writes the labels in uppercase.
         (states) => textTheme.labelSmall?.copyWith(
-          fontSize: 8,
+          fontSize: 10,
+          letterSpacing: 0,
           color: states.contains(WidgetState.selected)
               ? FatFishColors.cream100
               : FatFishColors.fog400,
@@ -75,31 +80,34 @@ ThemeData buildFatFishTheme() {
       ),
     ),
     // Main button (.btn). The hard shadow needs a wrapper with FatFishShadows.hard.
+    // Disabled buttons keep their colors at 50 %, like `opacity: 0.5` in the PWA.
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: FatFishColors.felt700,
         foregroundColor: FatFishColors.cream100,
+        disabledBackgroundColor: _half(FatFishColors.felt700),
+        disabledForegroundColor: _half(FatFishColors.cream100),
         minimumSize: const Size(44, 44),
         padding: const EdgeInsets.symmetric(horizontal: FatFishSpacing.s4),
         textStyle: textTheme.labelLarge,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(FatFishRadius.card),
-          side: BorderSide(color: FatFishColors.gold400, width: 2),
         ),
-      ),
+      ).copyWith(side: _borderByState(FatFishColors.gold400)),
     ),
     // Secondary button (.btn.ghost).
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         backgroundColor: FatFishColors.bg800,
         foregroundColor: FatFishColors.cream100,
+        disabledBackgroundColor: _half(FatFishColors.bg800),
+        disabledForegroundColor: _half(FatFishColors.cream100),
         minimumSize: const Size(44, 44),
         textStyle: const TextStyle(fontFamily: FatFishFonts.body, fontSize: 14),
-        side: const BorderSide(color: FatFishColors.line, width: 2),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(FatFishRadius.card),
         ),
-      ),
+      ).copyWith(side: _borderByState(FatFishColors.line)),
     ),
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
@@ -160,7 +168,7 @@ TextTheme _textTheme() {
     headlineLarge: display.copyWith(fontSize: 40), // h1
     headlineMedium: display.copyWith(fontSize: 30), // h2
     headlineSmall: display.copyWith(fontSize: 24), // h3
-    titleLarge: display.copyWith(fontSize: 28), // app bar
+    titleLarge: display.copyWith(fontSize: 26), // app bar (.topbar-title)
     labelLarge: display.copyWith(fontSize: 22, height: 1), // buttons
     bodyLarge: body.copyWith(fontSize: 16),
     bodyMedium: body.copyWith(fontSize: 15),
@@ -168,3 +176,14 @@ TextTheme _textTheme() {
     labelSmall: label, // write the text in uppercase, like .label in the PWA
   );
 }
+
+Color _half(Color color) => color.withValues(alpha: 0.5);
+
+/// 2 px button border that fades with the rest of the button when disabled.
+WidgetStateProperty<BorderSide> _borderByState(Color color) =>
+    WidgetStateProperty.resolveWith(
+      (states) => BorderSide(
+        color: states.contains(WidgetState.disabled) ? _half(color) : color,
+        width: 2,
+      ),
+    );

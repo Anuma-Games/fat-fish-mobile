@@ -16,11 +16,11 @@ void main() {
     expect(find.text('Lo que el casino sabe de ti'), findsOneWidget);
     expect(find.byType(PixelIcon), findsNWidgets(3));
 
-    await tester.tap(tab('Ranking'));
+    await tester.tap(tab('RANKING'));
     await tester.pumpAndSettle();
     expect(find.text('Ranking mundial'), findsOneWidget);
 
-    await tester.tap(tab('Mi jugador'));
+    await tester.tap(tab('MI JUGADOR'));
     await tester.pumpAndSettle();
     expect(find.textContaining('buscar a otros'), findsOneWidget);
   });

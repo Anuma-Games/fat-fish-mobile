@@ -53,3 +53,13 @@ abstract final class FatFishShadows {
     BoxShadow(color: Color(0xFF000000), offset: Offset(4, 4)),
   ];
 }
+
+abstract final class FatFishInsets {
+  /// Page content margins on a phone (.content): 24 top, 16 sides, 32 bottom.
+  static const page = EdgeInsets.fromLTRB(
+    FatFishSpacing.s4,
+    FatFishSpacing.s6,
+    FatFishSpacing.s4,
+    FatFishSpacing.s8,
+  );
+}

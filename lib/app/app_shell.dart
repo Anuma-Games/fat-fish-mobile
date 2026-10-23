@@ -33,15 +33,15 @@ class AppShell extends StatelessWidget {
           destinations: const [
             NavigationDestination(
               icon: PixelIcon(PixelIcons.dossier),
-              label: 'Expediente',
+              label: 'EXPEDIENTE',
             ),
             NavigationDestination(
               icon: PixelIcon(PixelIcons.ranking),
-              label: 'Ranking',
+              label: 'RANKING',
             ),
             NavigationDestination(
               icon: PixelIcon(PixelIcons.player),
-              label: 'Mi jugador',
+              label: 'MI JUGADOR',
             ),
           ],
         ),
