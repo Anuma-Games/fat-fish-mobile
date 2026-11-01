@@ -11,4 +11,17 @@ void main() {
 
     expect(row.read<int>('one'), 1);
   });
+
+  test('upgrades a version 1 database to the current tables', () async {
+    // Version 1 shipped with no tables; the upgrade must create all of them.
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (raw) => raw.execute('PRAGMA user_version = 1;'),
+      ),
+    );
+    addTearDown(db.close);
+
+    expect(await db.select(db.myPlayers).get(), isEmpty);
+    expect(await db.select(db.recentPlayers).get(), isEmpty);
+  });
 }

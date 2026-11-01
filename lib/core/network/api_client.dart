@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import 'api_exception.dart';
+import 'package:fat_fish_mobile/core/network/api_exception.dart';
 
 /// Thin HTTP client for the Fat Fish API. Features use it from their remote data sources.
 class ApiClient {
@@ -38,7 +38,11 @@ class ApiClient {
     _throwIfError(response);
     // A 204 (or any success without body) has nothing to decode.
     if (response.bodyBytes.isEmpty) return null;
-    return jsonDecode(utf8.decode(response.bodyBytes));
+    try {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } on FormatException {
+      throw const UnexpectedResponseException();
+    }
   }
 
   Map<String, String> get _headers => {

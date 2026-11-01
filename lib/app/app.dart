@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'router.dart';
-import 'theme/app_theme.dart';
+import 'package:fat_fish_mobile/app/router.dart';
+import 'package:fat_fish_mobile/app/theme/app_theme.dart';
 
 class FatFishApp extends StatefulWidget {
   const FatFishApp({super.key});
