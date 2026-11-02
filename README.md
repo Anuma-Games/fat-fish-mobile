@@ -61,6 +61,9 @@ Requiere Flutter 3.47.7 (canal stable); para el APK, Android SDK y Java 17.
 |----------------|--------------------------------------------------------------------|-------------------------------------------------------------------------|
 | `API_BASE_URL` | Dirección de la API, sin `/` final                                 | `http://10.0.2.2:8080`: la API local vista desde el emulador de Android |
 | `API_KEY`      | Llave de la cabecera `X-Api-Key`; se pide al responsable de la API | Vacía (la API local no la pide)                                         |
+| `SENTRY_DSN`   | DSN del proyecto `fat-fish-mobile` en Sentry (errores y rendimiento) | Vacío: Sentry desactivado (pruebas y CI)                              |
+| `SENTRY_ENVIRONMENT` | Ambiente que se muestra en Sentry (`development`, `staging`, `production`) | `development`                                           |
+| `SENTRY_TEST_BUTTON` | `true` muestra un botón que lanza un error de prueba para verificar Sentry | `false`                                                 |
 
 - El HTTP sin cifrar solo se permite en depuración. En un iPhone conviene usar la API en `https`.
 - La llave queda dentro del APK y se puede extraer, así que solo debe abrir endpoints de lectura pública.

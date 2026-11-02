@@ -30,6 +30,8 @@ void main() {
 
     expect(find.text('Lo que el casino sabe de ti'), findsOneWidget);
     expect(find.byType(PixelIcon), findsNWidgets(3));
+    // The Sentry test button only appears with SENTRY_TEST_BUTTON=true.
+    expect(find.byType(FloatingActionButton), findsNothing);
 
     await tester.tap(tab('RANKING'));
     await tester.pumpAndSettle();
