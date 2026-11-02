@@ -3,23 +3,23 @@ import 'package:fat_fish_mobile/features/jugador/presentation/pages/jugador_page
 import 'package:fat_fish_mobile/features/ranking/presentation/pages/ranking_page.dart';
 import 'package:go_router/go_router.dart';
 
-import 'app_shell.dart';
-
-/// Paths shared by the router and the features.
-abstract final class AppRoutes {
-  static const expediente = '/expediente';
-  static const ranking = '/ranking';
-  static const jugador = '/jugador';
-}
+import 'package:fat_fish_mobile/app/app_shell.dart';
+import 'package:fat_fish_mobile/app/fade_branch_container.dart';
+import 'package:fat_fish_mobile/core/navigation/app_routes.dart';
 
 /// One branch per tab, so each tab keeps its own navigation stack.
 GoRouter buildRouter() {
   return GoRouter(
     initialLocation: AppRoutes.expediente,
     routes: [
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
         builder: (context, state, navigationShell) =>
             AppShell(navigationShell: navigationShell),
+        navigatorContainerBuilder: (context, navigationShell, children) =>
+            FadeBranchContainer(
+              currentIndex: navigationShell.currentIndex,
+              children: children,
+            ),
         branches: [
           StatefulShellBranch(
             routes: [

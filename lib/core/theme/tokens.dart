@@ -1,3 +1,4 @@
+import 'package:flutter/animation.dart';
 import 'package:flutter/painting.dart';
 
 /// Design tokens, same names and values as `src/styles/tokens.css` in the PWA.
@@ -62,4 +63,19 @@ abstract final class FatFishInsets {
     FatFishSpacing.s4,
     FatFishSpacing.s8,
   );
+}
+
+/// Animation timings. Use them through `motionDuration` (core/presentation/motion.dart)
+/// so the phone's "reduce motion" setting turns them off.
+abstract final class FatFishMotion {
+  /// Icons and small swaps.
+  static const fast = Duration(milliseconds: 150);
+
+  /// Content that enters, leaves or resizes.
+  static const base = Duration(milliseconds: 250);
+
+  /// Extra delay per row when a list appears, so rows enter one after another.
+  static const stagger = Duration(milliseconds: 40);
+
+  static const curve = Curves.easeOutCubic;
 }

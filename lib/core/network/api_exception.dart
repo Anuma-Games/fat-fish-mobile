@@ -27,6 +27,12 @@ class NetworkException extends ApiException {
     : super('No hay conexión con el servidor. Revisa tu internet.');
 }
 
+/// A 2xx answer whose body is not the JSON we expect (a proxy page, a changed contract).
+class UnexpectedResponseException extends ApiException {
+  const UnexpectedResponseException()
+    : super('Algo salió mal de nuestro lado. Ya estamos en ello.');
+}
+
 /// Any other non-2xx answer from the API.
 class ServerException extends ApiException {
   const ServerException(this.statusCode)
