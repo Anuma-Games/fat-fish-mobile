@@ -10,4 +10,15 @@ abstract final class AppConfig {
   static const apiKey = String.fromEnvironment('API_KEY');
 
   static const requestTimeout = Duration(seconds: 10);
+
+  /// Sentry project key. Empty disables Sentry (tests and CI).
+  static const sentryDsn = String.fromEnvironment('SENTRY_DSN');
+
+  static const sentryEnvironment = String.fromEnvironment(
+    'SENTRY_ENVIRONMENT',
+    defaultValue: 'development',
+  );
+
+  /// Shows a button that throws a test error, to check that Sentry receives it.
+  static const sentryTestButton = bool.fromEnvironment('SENTRY_TEST_BUTTON');
 }

@@ -1,3 +1,4 @@
+import 'package:fat_fish_mobile/core/config/app_config.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/casino_background.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/pixel_icon.dart';
 import 'package:fat_fish_mobile/core/theme/tokens.dart';
@@ -14,6 +15,14 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CasinoBackground(child: navigationShell),
+      floatingActionButton: AppConfig.sentryTestButton
+          ? FloatingActionButton.small(
+              tooltip: 'Probar Sentry',
+              onPressed: () =>
+                  throw StateError('Error de prueba para verificar Sentry'),
+              child: const Icon(Icons.bug_report),
+            )
+          : null,
       // Gold top border, like the bottom border of the app bar.
       bottomNavigationBar: DecoratedBox(
         // In front: NavigationBar paints its own background over a back decoration.
