@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 /// 12 × 12 pixel art icons, the same grids as `pixel-icon.ts` in the PWA ('#' is a filled pixel).
-/// `ranking`, `player` and `clock` exist only in the app.
+/// `ranking`, `player`, `clock`, `back`, `chevron` and `arrowDown` exist only in the app.
 enum PixelIcons {
   menu([
     '',
@@ -169,6 +169,48 @@ enum PixelIcons {
     '.#........#.',
     '..#......#..',
     '...######...',
+    '',
+  ]),
+  back([
+    '',
+    '.......##',
+    '......##',
+    '.....##',
+    '....##',
+    '...##',
+    '...##',
+    '....##',
+    '.....##',
+    '......##',
+    '.......##',
+    '',
+  ]),
+  chevron([
+    '',
+    '...##',
+    '....##',
+    '.....##',
+    '......##',
+    '.......##',
+    '.......##',
+    '......##',
+    '.....##',
+    '....##',
+    '...##',
+    '',
+  ]),
+  arrowDown([
+    '',
+    '.....##',
+    '.....##',
+    '.....##',
+    '.....##',
+    '.....##',
+    '.#...##...#',
+    '..#..##..#',
+    '...######',
+    '....####',
+    '.....##',
     '',
   ]);
 

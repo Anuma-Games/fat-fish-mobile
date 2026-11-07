@@ -14,8 +14,8 @@ ThemeData buildFatFishTheme() {
     onSurface: FatFishColors.cream100,
     onSurfaceVariant: FatFishColors.fog400,
     surfaceContainer: FatFishColors.bg700,
-    error: FatFishColors.ruby300,
-    onError: FatFishColors.bg900,
+    error: FatFishColors.red,
+    onError: FatFishColors.cream100,
     outline: FatFishColors.line,
     outlineVariant: FatFishColors.line,
   );
@@ -31,19 +31,18 @@ ThemeData buildFatFishTheme() {
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: FatFishColors.gold400,
     ),
+    // Dark strip without borders; content scrolls under it.
     appBarTheme: AppBarTheme(
-      backgroundColor: FatFishColors.felt800,
+      backgroundColor: FatFishColors.bg900.withValues(alpha: 0.94),
       foregroundColor: FatFishColors.cream100,
       elevation: 0,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
-      // Left aligned on every platform, like the PWA top bar (iOS centers it by default).
+      toolbarHeight: 64,
+      // Left aligned on every platform (iOS centers it by default).
       centerTitle: false,
       titleSpacing: FatFishSpacing.s4,
       titleTextStyle: textTheme.titleLarge,
-      shape: const Border(
-        bottom: BorderSide(color: FatFishColors.gold600, width: 2),
-      ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: FatFishColors.felt800,

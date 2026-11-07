@@ -45,6 +45,11 @@ flutter:
         - asset: assets/fonts/Geist-Regular.ttf
         - asset: assets/fonts/Geist-SemiBold.ttf
           weight: 600
+    - family: CourierPrime
+      fonts:
+        - asset: assets/fonts/CourierPrime-Regular.ttf
+        - asset: assets/fonts/CourierPrime-Bold.ttf
+          weight: 700
 
 # App icon: regenerate with `dart run flutter_launcher_icons` after changing assets/icon.
 flutter_launcher_icons:

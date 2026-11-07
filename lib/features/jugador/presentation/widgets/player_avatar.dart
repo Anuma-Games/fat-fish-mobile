@@ -14,7 +14,7 @@ class PlayerAvatar extends StatelessWidget {
 
   static const _colors = [
     FatFishColors.felt700,
-    FatFishColors.ruby700,
+    FatFishColors.red,
     FatFishColors.gold600,
     FatFishColors.line,
   ];

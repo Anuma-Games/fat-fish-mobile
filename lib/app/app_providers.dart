@@ -1,5 +1,8 @@
 import 'package:fat_fish_mobile/core/network/api_client.dart';
 import 'package:fat_fish_mobile/core/storage/app_database.dart';
+import 'package:fat_fish_mobile/features/expediente/data/datasources/expediente_remote_data_source.dart';
+import 'package:fat_fish_mobile/features/expediente/data/repositories/expediente_repository_impl.dart';
+import 'package:fat_fish_mobile/features/expediente/domain/repositories/expediente_repository.dart';
 import 'package:fat_fish_mobile/features/jugador/data/datasources/player_local_data_source.dart';
 import 'package:fat_fish_mobile/features/jugador/data/datasources/player_remote_data_source.dart';
 import 'package:fat_fish_mobile/features/jugador/data/repositories/player_repository_impl.dart';
@@ -37,6 +40,11 @@ class AppProviders extends StatelessWidget {
         RepositoryProvider<AppDatabase>(
           create: (_) => database,
           dispose: (db) => db.close(),
+        ),
+        RepositoryProvider<ExpedienteRepository>(
+          create: (context) => ExpedienteRepositoryImpl(
+            remote: ExpedienteRemoteDataSource(context.read<ApiClient>()),
+          ),
         ),
         RepositoryProvider<PlayerRepository>(
           create: (context) => PlayerRepositoryImpl(
