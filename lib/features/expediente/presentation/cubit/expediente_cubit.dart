@@ -30,9 +30,23 @@ class ExpedienteCubit extends Cubit<ExpedienteState> {
     await _loadFirstPage();
   }
 
+  /// Refreshes still on their way; "Ver más" waits for them.
+  int _refreshing = 0;
+
   /// Pull to refresh: the dossier stays on screen while it reloads.
-  Future<void> refresh() =>
-      state is ExpedienteLoaded ? _loadFirstPage() : load();
+  Future<void> refresh() async {
+    final current = state;
+    if (current is! ExpedienteLoaded) return load();
+    // Clears the last error first: a second failure in a row is a new state, so the
+    // screen reports it again.
+    emit(current.copyWith());
+    _refreshing++;
+    try {
+      await _loadFirstPage();
+    } finally {
+      _refreshing--;
+    }
+  }
 
   Future<void> _loadFirstPage() async {
     final request = ++_request;
@@ -72,7 +86,9 @@ class ExpedienteCubit extends Cubit<ExpedienteState> {
   Future<void> loadMore() async {
     final current = state;
     if (current is! ExpedienteLoaded || !current.hasMore) return;
-    if (current.loadingMore) return;
+    // A refresh brings a new first page; the next page waits for it, or it would
+    // drop the refresh and land on the old list.
+    if (current.loadingMore || _refreshing > 0) return;
 
     final request = ++_request;
     emit(current.copyWith(loadingMore: true));
