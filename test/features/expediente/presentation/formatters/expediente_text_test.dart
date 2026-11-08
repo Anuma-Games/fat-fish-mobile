@@ -51,4 +51,15 @@ void main() {
     expect(houseCut(invested: 300, lost: 0), 0);
     expect(houseCut(invested: 0, lost: 0), isNull);
   });
+
+  test('writes when a copy was saved', () {
+    expect(
+      formatSavedAt(DateTime(2026, 11, 3, 18, 42)),
+      '3 de noviembre, 2026, a las 18:42',
+    );
+    expect(
+      formatSavedAt(DateTime(2026, 1, 9, 7, 5)),
+      '9 de enero, 2026, a las 07:05',
+    );
+  });
 }

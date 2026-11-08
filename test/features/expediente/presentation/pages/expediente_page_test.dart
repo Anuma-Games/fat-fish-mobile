@@ -245,4 +245,39 @@ void main() {
     expect(find.text(const NetworkException().message), findsOneWidget);
     expect(find.text('Ver más partidas'), findsOneWidget);
   });
+
+  testWidgets('offline, the history waits for a connection to show more', (
+    tester,
+  ) async {
+    final saved = PlayerProfile(
+      id: profile.id,
+      alias: profile.alias,
+      createdAt: profile.createdAt,
+      stats: profile.stats,
+      generatedAt: profile.generatedAt,
+      savedAt: DateTime(2026, 11, 3, 18, 42),
+    );
+    when(() => expediente.getProfile('7')).thenAnswer((_) async => saved);
+    when(() => expediente.getMatches('7', page: 0)).thenAnswer(
+      (_) async => MatchPage(
+        matches: [playedMatch('a', 11)],
+        page: 0,
+        totalMatches: 12,
+        isLast: false,
+      ),
+    );
+
+    await pumpPage(tester, page: const HistorialPage());
+
+    expect(find.text('SIN CONEXIÓN'), findsOneWidget);
+    expect(
+      find.textContaining('3 de noviembre, 2026, a las 18:42'),
+      findsOneWidget,
+    );
+    expect(find.text('Ver más partidas'), findsNothing);
+    expect(
+      find.textContaining('El historial guardado tiene 1 de 12 partidas'),
+      findsOneWidget,
+    );
+  });
 }

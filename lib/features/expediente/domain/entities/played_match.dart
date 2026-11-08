@@ -51,6 +51,7 @@ class MatchPage extends Equatable {
     required this.page,
     required this.totalMatches,
     required this.isLast,
+    this.savedAt,
   });
 
   final List<PlayedMatch> matches;
@@ -60,6 +61,10 @@ class MatchPage extends Equatable {
   final int totalMatches;
   final bool isLast;
 
+  /// When this copy was saved on the device, if it was read there because there is no
+  /// connection. Null for a fresh answer.
+  final DateTime? savedAt;
+
   @override
-  List<Object?> get props => [matches, page, totalMatches, isLast];
+  List<Object?> get props => [matches, page, totalMatches, isLast, savedAt];
 }

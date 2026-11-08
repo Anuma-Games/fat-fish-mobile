@@ -50,6 +50,13 @@ String formatLongDate(DateTime date) {
   return '${local.day} de ${_months[local.month - 1]}, ${local.year}';
 }
 
+/// When a copy was saved on the device: "3 de noviembre, 2026, a las 18:42".
+String formatSavedAt(DateTime date) {
+  final local = date.toLocal();
+  String two(int n) => n.toString().padLeft(2, '0');
+  return '${formatLongDate(local)}, a las ${two(local.hour)}:${two(local.minute)}';
+}
+
 /// Last time the casino saw the player: "Hoy", "Ayer" or the date.
 String describeLastSeen(DateTime? lastActivity, {required DateTime now}) {
   if (lastActivity == null) return 'Sin actividad';

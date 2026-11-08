@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:fat_fish_mobile/core/presentation/widgets/dashed_border.dart';
 import 'package:fat_fish_mobile/core/theme/tokens.dart';
 
 /// Material theme with the PWA style guide applied to each component,
@@ -129,13 +130,19 @@ ThemeData buildFatFishTheme() {
         borderSide: BorderSide(color: FatFishColors.gold400, width: 2),
       ),
     ),
+    // Floats 16 px from the sides, like the cards, instead of touching both edges.
     snackBarTheme: const SnackBarThemeData(
-      backgroundColor: FatFishColors.bg700,
-      contentTextStyle: TextStyle(color: FatFishColors.cream100),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(FatFishRadius.card),
-        side: BorderSide(color: FatFishColors.line),
+      behavior: SnackBarBehavior.floating,
+      insetPadding: EdgeInsets.fromLTRB(
+        FatFishSpacing.s4,
+        0,
+        FatFishSpacing.s4,
+        FatFishSpacing.s4,
       ),
+      // Same dashed gold border as the offline notice: both are warnings.
+      backgroundColor: FatFishColors.bg800,
+      contentTextStyle: TextStyle(color: FatFishColors.cream100),
+      shape: DashedBorder(),
     ),
   );
 }

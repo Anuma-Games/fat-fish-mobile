@@ -29,6 +29,7 @@ class Ranking extends Equatable {
     required this.page,
     required this.totalPages,
     this.myPosition,
+    this.savedAt,
   });
 
   final List<RankingEntry> entries;
@@ -41,6 +42,10 @@ class Ranking extends Equatable {
   /// or when the player has not won a match yet.
   final RankingEntry? myPosition;
 
+  /// When this copy was saved on the device, if it was read there because there is no
+  /// connection. Null for a fresh answer.
+  final DateTime? savedAt;
+
   @override
-  List<Object?> get props => [entries, page, totalPages, myPosition];
+  List<Object?> get props => [entries, page, totalPages, myPosition, savedAt];
 }

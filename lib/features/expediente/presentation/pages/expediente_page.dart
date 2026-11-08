@@ -2,6 +2,7 @@ import 'package:fat_fish_mobile/core/navigation/app_routes.dart';
 import 'package:fat_fish_mobile/core/presentation/motion.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/fat_fish_app_bar.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/notice.dart';
+import 'package:fat_fish_mobile/core/presentation/widgets/offline_notice.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/pixel_icon.dart';
 import 'package:fat_fish_mobile/core/theme/tokens.dart';
 import 'package:fat_fish_mobile/features/expediente/presentation/cubit/expediente_cubit.dart';
@@ -86,7 +87,7 @@ class _ExpedienteView extends StatelessWidget {
         ),
         ExpedienteFailure(:final message) => ListView(
           padding: insets,
-          children: [LoadFailedNotice(message: message, onRetry: cubit.load)],
+          children: [LoadFailedNotice(message: message, onRetry: cubit.retry)],
         ),
       },
     );
@@ -116,6 +117,19 @@ class _Dossier extends StatelessWidget {
       // Pull to refresh works even when the dossier is shorter than the screen.
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
+        if (state.profile.savedAt case final savedAt?) ...[
+          Padding(
+            // Gives back the margin "Cambiar" takes from the top.
+            padding: const EdgeInsets.only(
+              top: DossierSheet.changeButtonOverhang,
+            ),
+            child: OfflineNotice(
+              savedOn: formatSavedAt(savedAt),
+              onRetry: context.read<ExpedienteCubit>().refresh,
+            ),
+          ),
+          const SizedBox(height: FatFishSpacing.s4),
+        ],
         DossierSheet(
           profile: state.profile,
           now: DateTime.now(),

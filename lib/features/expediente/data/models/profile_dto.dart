@@ -9,9 +9,11 @@ class ProfileDto {
     this.ultimaActividad,
     required this.estadisticas,
     required this.generadoEn,
+    this.savedAt,
   });
 
-  factory ProfileDto.fromJson(Map<String, Object?> json) {
+  /// [savedAt] is the date of a copy read from the device; null for a fresh answer.
+  factory ProfileDto.fromJson(Map<String, Object?> json, {DateTime? savedAt}) {
     final stats = json['estadisticas'] as Map<String, Object?>;
     return ProfileDto(
       jugadorId: json['jugadorId'] as String,
@@ -30,6 +32,7 @@ class ProfileDto {
         secondsPlayed: stats['tiempoJugadoSeg'] as int,
       ),
       generadoEn: DateTime.parse(json['generadoEn'] as String),
+      savedAt: savedAt,
     );
   }
 
@@ -39,6 +42,7 @@ class ProfileDto {
   final DateTime? ultimaActividad;
   final ProfileStats estadisticas;
   final DateTime generadoEn;
+  final DateTime? savedAt;
 
   PlayerProfile toEntity() => PlayerProfile(
     id: jugadorId,
@@ -47,5 +51,6 @@ class ProfileDto {
     lastActivity: ultimaActividad,
     stats: estadisticas,
     generatedAt: generadoEn,
+    savedAt: savedAt,
   );
 }

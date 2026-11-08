@@ -1,9 +1,11 @@
 import 'package:fat_fish_mobile/core/presentation/motion.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/fat_fish_app_bar.dart';
+import 'package:fat_fish_mobile/core/presentation/widgets/offline_notice.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/pixel_icon.dart';
 import 'package:fat_fish_mobile/core/theme/tokens.dart';
 import 'package:fat_fish_mobile/features/expediente/domain/repositories/expediente_repository.dart';
 import 'package:fat_fish_mobile/features/expediente/presentation/cubit/expediente_cubit.dart';
+import 'package:fat_fish_mobile/features/expediente/presentation/formatters/expediente_text.dart';
 import 'package:fat_fish_mobile/features/expediente/presentation/widgets/expediente_problem.dart';
 import 'package:fat_fish_mobile/features/expediente/presentation/widgets/match_row.dart';
 import 'package:fat_fish_mobile/features/jugador/domain/entities/player_summary.dart';
@@ -61,7 +63,7 @@ class _HistorialView extends StatelessWidget {
         ),
         ExpedienteFailure(:final message) => ListView(
           padding: insets,
-          children: [LoadFailedNotice(message: message, onRetry: cubit.load)],
+          children: [LoadFailedNotice(message: message, onRetry: cubit.retry)],
         ),
       },
     );
@@ -78,11 +80,19 @@ class _History extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final matches = state.matches;
+    final savedAt = state.profile.savedAt;
 
     return ListView(
       padding: FatFishAppBar.pageInsets(context),
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
+        if (savedAt != null) ...[
+          OfflineNotice(
+            savedOn: formatSavedAt(savedAt),
+            onRetry: context.read<ExpedienteCubit>().refresh,
+          ),
+          const SizedBox(height: FatFishSpacing.s4),
+        ],
         MergeSemantics(
           child: Row(
             children: [
@@ -132,7 +142,20 @@ class _History extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          if (state.hasMore)
+          // Offline only the pages already saved are here; the rest wait for a
+          // connection.
+          if (state.hasMore && savedAt != null)
+            Padding(
+              padding: const EdgeInsets.all(FatFishSpacing.s2),
+              child: Text(
+                'El historial guardado tiene ${formatNumber(matches.length)} '
+                'de ${formatNumber(state.totalMatches)} partidas. '
+                '“Ver más” vuelve cuando haya red.',
+                textAlign: TextAlign.center,
+                style: textTheme.bodySmall,
+              ),
+            )
+          else if (state.hasMore)
             _MoreButton(loading: state.loadingMore)
           else
             Padding(

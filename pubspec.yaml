@@ -37,9 +37,10 @@ flutter:
     - family: Jersey10
       fonts:
         - asset: assets/fonts/Jersey10-Regular.ttf
-    - family: PressStart2P
+    # Press Start 2P with full-height accented capitals (tool/fuente_pixel.py).
+    - family: FatFishPixel
       fonts:
-        - asset: assets/fonts/PressStart2P-Regular.ttf
+        - asset: assets/fonts/FatFishPixel-Regular.ttf
     - family: Geist
       fonts:
         - asset: assets/fonts/Geist-Regular.ttf

@@ -42,3 +42,15 @@ class Appear extends StatelessWidget {
     );
   }
 }
+
+/// Waits for [request], and at least [minimum], so a retry the player asked for shows
+/// its spinner long enough to be seen. Errors also wait.
+Future<T> atLeast<T>(Future<T> request, Duration minimum) async {
+  if (minimum == Duration.zero) return request;
+  final wait = Future<void>.delayed(minimum);
+  try {
+    return await request;
+  } finally {
+    await wait;
+  }
+}

@@ -1,4 +1,5 @@
 import 'package:fat_fish_mobile/core/network/api_client.dart';
+import 'package:fat_fish_mobile/core/network/cached_api.dart';
 import 'package:fat_fish_mobile/core/storage/app_database.dart';
 import 'package:fat_fish_mobile/features/expediente/data/datasources/expediente_remote_data_source.dart';
 import 'package:fat_fish_mobile/features/expediente/data/repositories/expediente_repository_impl.dart';
@@ -44,14 +45,21 @@ class AppProviders extends StatelessWidget {
           create: (_) => database,
           dispose: (db) => db.close(),
         ),
+        // Keeps the last dossier, history and ranking for offline use.
+        RepositoryProvider<CachedApi>(
+          create: (context) => CachedApi(
+            api: context.read<ApiClient>(),
+            db: context.read<AppDatabase>(),
+          ),
+        ),
         RepositoryProvider<ExpedienteRepository>(
           create: (context) => ExpedienteRepositoryImpl(
-            remote: ExpedienteRemoteDataSource(context.read<ApiClient>()),
+            remote: ExpedienteRemoteDataSource(context.read<CachedApi>()),
           ),
         ),
         RepositoryProvider<RankingRepository>(
           create: (context) => RankingRepositoryImpl(
-            remote: RankingRemoteDataSource(context.read<ApiClient>()),
+            remote: RankingRemoteDataSource(context.read<CachedApi>()),
           ),
         ),
         RepositoryProvider<PlayerRepository>(

@@ -9,6 +9,7 @@ class PlayerProfile extends Equatable {
     this.lastActivity,
     required this.stats,
     required this.generatedAt,
+    this.savedAt,
   });
 
   final String id;
@@ -22,6 +23,10 @@ class PlayerProfile extends Equatable {
   /// When the API built the answer; the screen shows it as the date of the data.
   final DateTime generatedAt;
 
+  /// When this copy was saved on the device, if it was read there because there is no
+  /// connection. Null for a fresh answer.
+  final DateTime? savedAt;
+
   @override
   List<Object?> get props => [
     id,
@@ -30,6 +35,7 @@ class PlayerProfile extends Equatable {
     lastActivity,
     stats,
     generatedAt,
+    savedAt,
   ];
 }
 
