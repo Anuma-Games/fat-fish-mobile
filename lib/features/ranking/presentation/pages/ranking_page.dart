@@ -121,7 +121,7 @@ class _Ranking extends StatelessWidget {
 
     return ListView(
       // A new list per page, so each page opens at the top.
-      key: PageStorageKey(ranking.page),
+      key: ValueKey(ranking.page),
       padding: FatFishAppBar.pageInsets(context),
       physics: const AlwaysScrollableScrollPhysics(),
       children: [

@@ -128,4 +128,37 @@ void main() {
       RankingLoaded(ranking: rankingPage(2)),
     ],
   );
+
+  blocTest<RankingCubit, RankingState>(
+    'reports a second failed refresh in a row',
+    setUp: () =>
+        when(() => repository.getRanking(page: 0, playerId: '7'))
+            .thenAnswer((_) async => throw const NetworkException()),
+    build: build,
+    seed: () => RankingLoaded(
+      ranking: rankingPage(0),
+      failure: const NetworkException().message,
+    ),
+    act: (cubit) => cubit.refresh(),
+    expect: () => [
+      RankingLoaded(ranking: rankingPage(0)),
+      RankingLoaded(
+        ranking: rankingPage(0),
+        failure: const NetworkException().message,
+      ),
+    ],
+  );
+
+  blocTest<RankingCubit, RankingState>(
+    'a refresh while a page loads asks for that page',
+    setUp: () =>
+        when(() => repository.getRanking(page: 2, playerId: '7'))
+            .thenAnswer((_) async => rankingPage(2)),
+    build: build,
+    seed: () => RankingLoaded(ranking: rankingPage(0), loadingPage: 2),
+    act: (cubit) => cubit.refresh(),
+    expect: () => [RankingLoaded(ranking: rankingPage(2))],
+    verify: (_) =>
+        verifyNever(() => repository.getRanking(page: 0, playerId: '7')),
+  );
 }

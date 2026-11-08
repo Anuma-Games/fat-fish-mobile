@@ -26,10 +26,15 @@ class RankingCubit extends Cubit<RankingState> {
   }
 
   /// Pull to refresh: the current page stays on screen while it reloads.
-  Future<void> refresh() => switch (state) {
-    final RankingLoaded loaded => _show(loaded.ranking.page),
-    _ => load(),
-  };
+  /// While a page is loading, the refresh asks for that page, not the one on screen.
+  Future<void> refresh() async {
+    final current = state;
+    if (current is! RankingLoaded) return load();
+    // Clears the last error first: a second failure in a row is a new state, so the
+    // screen reports it again.
+    emit(current.copyWith(loadingPage: current.loadingPage));
+    await _show(current.loadingPage ?? current.ranking.page);
+  }
 
   /// A page number of the bar, from 0. The current page stays until the new one arrives.
   Future<void> goToPage(int page) async {
