@@ -11,6 +11,9 @@ import 'package:fat_fish_mobile/features/jugador/domain/usecases/clear_my_player
 import 'package:fat_fish_mobile/features/jugador/domain/usecases/get_my_player.dart';
 import 'package:fat_fish_mobile/features/jugador/domain/usecases/save_my_player.dart';
 import 'package:fat_fish_mobile/features/jugador/presentation/cubit/my_player_cubit.dart';
+import 'package:fat_fish_mobile/features/ranking/data/datasources/ranking_remote_data_source.dart';
+import 'package:fat_fish_mobile/features/ranking/data/repositories/ranking_repository_impl.dart';
+import 'package:fat_fish_mobile/features/ranking/domain/repositories/ranking_repository.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -44,6 +47,11 @@ class AppProviders extends StatelessWidget {
         RepositoryProvider<ExpedienteRepository>(
           create: (context) => ExpedienteRepositoryImpl(
             remote: ExpedienteRemoteDataSource(context.read<ApiClient>()),
+          ),
+        ),
+        RepositoryProvider<RankingRepository>(
+          create: (context) => RankingRepositoryImpl(
+            remote: RankingRemoteDataSource(context.read<ApiClient>()),
           ),
         ),
         RepositoryProvider<PlayerRepository>(

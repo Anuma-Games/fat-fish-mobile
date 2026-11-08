@@ -38,7 +38,7 @@ público**. La retroalimentación y la encuesta se quedan en la PWA.
 | Base: estructura, configuración, navegación y tema | ✅ Construido |
 | Mi jugador y búsqueda por alias o ID               | ✅ Construido |
 | Expediente e historial                             | ✅ Construido |
-| Ranking mundial                                    | ⏳ Pendiente  |
+| Ranking mundial                                    | ✅ Construido |
 | Consulta sin conexión                              | ⏳ Pendiente  |
 | APK publicado                                      | ⏳ Pendiente  |
 
@@ -115,7 +115,7 @@ Página → Cubit → Caso de uso → Repositorio (domain) ← Implementación (
 | `GET /api/pwa/perfil?id=`                   | Datos del jugador y sus estadísticas | ✅ Disponible |
 | `GET /api/pwa/partidas?id=&pagina=&tamano=` | Historial paginado                   | ✅ Disponible |
 | `GET /api/pwa/jugadores?busqueda=`          | Búsqueda por alias o ID              | ✅ Disponible |
-| `GET /api/pwa/ranking?pagina=&jugadorId=`   | Top 50 y la posición propia          | ⏳ Pendiente  |
+| `GET /api/pwa/ranking?pagina=&jugadorId=`   | Top 50 y la posición propia          | ✅ Disponible |
 
 `ApiClient` envía `X-Api-Key` y convierte cada falla en una excepción que la pantalla muestra:
 

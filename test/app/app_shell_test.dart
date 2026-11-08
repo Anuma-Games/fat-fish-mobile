@@ -20,7 +20,15 @@ void main() {
       AppProviders(
         apiClient: ApiClient(
           baseUrl: 'https://api.test',
-          httpClient: MockClient((_) async => http.Response('[]', 200)),
+          httpClient: MockClient(
+            (request) async => http.Response(
+              request.url.path == '/api/pwa/ranking'
+                  ? '{"pagina":{"contenido":[],"pagina":0,"totalPaginas":0},'
+                        '"miPosicion":null}'
+                  : '[]',
+              200,
+            ),
+          ),
         ),
         database: AppDatabase(NativeDatabase.memory()),
         child: const FatFishApp(),
@@ -41,7 +49,8 @@ void main() {
 
     await tester.tap(tab('RANKING'));
     await tester.pumpAndSettle();
-    expect(find.text('Ranking mundial'), findsOneWidget);
+    expect(find.text('Mejores puntajes'), findsOneWidget);
+    expect(find.text('Nadie ha ganado una partida todavía.'), findsOneWidget);
 
     await tester.tap(tab('MI JUGADOR'));
     await tester.pumpAndSettle();
