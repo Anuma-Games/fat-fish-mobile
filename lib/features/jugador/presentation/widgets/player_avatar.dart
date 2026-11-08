@@ -19,10 +19,14 @@ class PlayerAvatar extends StatelessWidget {
     FatFishColors.line,
   ];
 
+  /// The color of a player, the same on every screen: search, dossier and ranking.
+  static Color colorFor(String playerId) {
+    final seed = int.tryParse(playerId) ?? playerId.hashCode;
+    return _colors[seed.abs() % _colors.length];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final seed = int.tryParse(player.id) ?? player.id.hashCode;
-
     // Decoration only: the alias next to it already says who it is.
     return ExcludeSemantics(
       child: Container(
@@ -30,7 +34,7 @@ class PlayerAvatar extends StatelessWidget {
         height: size,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: _colors[seed.abs() % _colors.length],
+          color: colorFor(player.id),
           borderRadius: const BorderRadius.all(FatFishRadius.card),
         ),
         child: Text(

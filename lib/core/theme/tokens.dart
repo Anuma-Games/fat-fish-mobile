@@ -44,6 +44,37 @@ abstract final class FatFishColors {
   static const bronze = Color(0xFF9A5B2C);
 }
 
+/// Metal of the three pedestals of the ranking podium: five shades from the lit top to
+/// the shaded base, and the color of the score above each one.
+enum FatFishMedal {
+  gold([
+    Color(0xFFE8B850),
+    Color(0xFFD6A23C),
+    Color(0xFFC08828),
+    Color(0xFFA2731F),
+    Color(0xFF8A6118),
+  ], score: Color(0xFFE8B850)),
+  silver([
+    Color(0xFFD4DAD7),
+    Color(0xFFB8C2BD),
+    Color(0xFF9AA8A2),
+    Color(0xFF82908A),
+    Color(0xFF6B7671),
+  ], score: Color(0xFFC9D0D6)),
+  bronze([
+    Color(0xFFD9925A),
+    Color(0xFFC27A44),
+    Color(0xFFA8622E),
+    Color(0xFF8B5025),
+    Color(0xFF6E3F1C),
+  ], score: Color(0xFFD9925A));
+
+  const FatFishMedal(this.shades, {required this.score});
+
+  final List<Color> shades;
+  final Color score;
+}
+
 /// Font families declared in pubspec.yaml (files in assets/fonts).
 abstract final class FatFishFonts {
   /// Titles and big numbers.
