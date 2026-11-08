@@ -39,6 +39,8 @@ público**. La retroalimentación y la encuesta se quedan en la PWA.
 | Mi jugador y búsqueda por alias o ID               | ✅ Construido |
 | Expediente e historial                             | ✅ Construido |
 | Ranking mundial                                    | ✅ Construido |
+| Bienvenida y barra de navegación con gesto         | ✅ Construido |
+| La mesa, ajustes y sonido                          | ⏳ Pendiente  |
 | Consulta sin conexión                              | ⏳ Pendiente  |
 | APK publicado                                      | ⏳ Pendiente  |
 
@@ -85,7 +87,7 @@ lib/
 ├── main.dart                 # raíz de composición: crea los servicios y los entrega con RepositoryProvider
 ├── app/                      # FatFishApp, tema, rutas y barra de navegación
 ├── core/                     # config, ApiClient, AppDatabase, tokens de diseño y widgets comunes
-└── features/                 # expediente, jugador y ranking
+└── features/                 # bienvenida, expediente, jugador, mesa y ranking
     └── <feature>/
         ├── data/             # DTOs, fuentes de datos (API y caché) e implementación del repositorio
         ├── domain/           # entidades, repositorio abstracto y casos de uso
@@ -147,7 +149,11 @@ stateDiagram-v2
 
 La app sigue el diseño de [Fat Fish - App móvil](https://claude.ai/artifact/PKb3b1jTvdyMvX6TVU9Sr8): fondo con el
 patrón de rombos, barra superior oscura e íconos pixel art de 12 × 12 (`PixelIcon`). Lo que el casino sabe del jugador
-va en una hoja de papel (`RuledPaper`, `PaperText`). Los valores están en `lib/core/theme/tokens.dart`, y
+va en una hoja de papel (`RuledPaper`, `PaperText`).
+
+Sin jugador guardado la app abre la **Bienvenida**. Con jugador, abre el expediente. Abajo flota la barra con tres fichas,
+**Expediente**, **Mesa** y **Ranking**, que cambian al tocarlas o al deslizar el dedo sobre la barra. Las dos barras se
+ocultan al bajar y vuelven al subir. **Mi jugador** se abre desde "Cambiar" en el expediente. Los valores están en `lib/core/theme/tokens.dart`, y
 `lib/app/theme/app_theme.dart` los aplica a los componentes de Material, así que las pantallas no escriben colores ni
 medidas.
 

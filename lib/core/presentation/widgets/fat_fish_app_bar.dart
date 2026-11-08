@@ -1,3 +1,5 @@
+import 'package:fat_fish_mobile/core/presentation/bars_visibility.dart';
+import 'package:fat_fish_mobile/core/presentation/motion.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/pixel_icon.dart';
 import 'package:fat_fish_mobile/core/theme/tokens.dart';
 import 'package:flutter/material.dart';
@@ -9,15 +11,19 @@ class FatFishAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   static const height = 64.0;
 
-  /// Margins of a page whose content scrolls under the bar (`extendBodyBehindAppBar`):
-  /// 20 px under the bar, 16 at the sides and 32 at the bottom.
-  static EdgeInsets pageInsets(BuildContext context) => EdgeInsets.fromLTRB(
-    FatFishSpacing.s4,
-    // With extendBodyBehindAppBar the top padding already counts the bar.
-    MediaQuery.paddingOf(context).top + 20,
-    FatFishSpacing.s4,
-    FatFishSpacing.s8,
-  );
+  /// Margins of a page whose content scrolls under the bars (`extendBodyBehindAppBar`
+  /// here and `extendBody` in AppShell): 20 px under the top bar, 16 at the sides and
+  /// 28 over the bottom bar or the bottom edge.
+  static EdgeInsets pageInsets(BuildContext context) {
+    // Both paddings already count the bars over the content.
+    final padding = MediaQuery.paddingOf(context);
+    return EdgeInsets.fromLTRB(
+      FatFishSpacing.s4,
+      padding.top + 20,
+      FatFishSpacing.s4,
+      padding.bottom + 28,
+    );
+  }
 
   final String title;
 
@@ -28,6 +34,16 @@ class FatFishAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final canPop = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
 
+    // Slides up out of sight while the tab scrolls down (BarsVisibility).
+    return AnimatedSlide(
+      offset: BarsVisibility.of(context) ? Offset.zero : const Offset(0, -1),
+      duration: motionDuration(context, FatFishMotion.base),
+      curve: FatFishMotion.curve,
+      child: _bar(context, canPop: canPop),
+    );
+  }
+
+  Widget _bar(BuildContext context, {required bool canPop}) {
     return AppBar(
       automaticallyImplyLeading: false,
       // The arrow sits 4 px from the edge, so its 44 px target lines up with the 16 px margin.
