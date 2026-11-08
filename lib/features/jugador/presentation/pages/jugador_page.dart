@@ -1,6 +1,7 @@
 import 'package:fat_fish_mobile/core/navigation/app_routes.dart';
 import 'package:fat_fish_mobile/core/presentation/motion.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/fat_fish_app_bar.dart';
+import 'package:fat_fish_mobile/core/presentation/widgets/notice.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/pixel_icon.dart';
 import 'package:fat_fish_mobile/core/theme/tokens.dart';
 import 'package:fat_fish_mobile/features/jugador/domain/entities/player_summary.dart';
@@ -184,14 +185,14 @@ class _JugadorViewState extends State<_JugadorView> {
                   // The spinner lives in the search field, so the list never moves.
                   PlayerSearchLoading(:final players) => results(players),
                   PlayerSearchLoaded(:final players) => results(players),
-                  PlayerSearchEmpty(:final query) => _Notice(
+                  PlayerSearchEmpty(:final query) => Notice(
                     icon: PixelIcons.search,
                     text: 'Nadie coincide con "$query".',
                   ),
-                  PlayerSearchFailure(:final message) => _Notice(
+                  PlayerSearchFailure(:final message) => Notice(
                     icon: PixelIcons.offline,
                     text: message,
-                    color: FatFishColors.ruby300,
+                    color: FatFishColors.cream100,
                   ),
                 },
               ),
@@ -333,44 +334,13 @@ class _DismissBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     // The panel clips it to its rounded corners.
     return Container(
-      color: FatFishColors.ruby700,
+      color: FatFishColors.red,
       alignment: alignment,
       padding: const EdgeInsets.symmetric(horizontal: FatFishSpacing.s4),
       child: const PixelIcon(
         PixelIcons.close,
         size: 12,
         color: FatFishColors.cream100,
-      ),
-    );
-  }
-}
-
-class _Notice extends StatelessWidget {
-  const _Notice({
-    required this.icon,
-    required this.text,
-    this.color = FatFishColors.fog400,
-  });
-
-  final PixelIcons icon;
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: FatFishSpacing.s8),
-      child: Column(
-        children: [
-          PixelIcon(icon, size: 48, color: color),
-          const SizedBox(height: FatFishSpacing.s4),
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium
-                ?.copyWith(color: color),
-          ),
-        ],
       ),
     );
   }

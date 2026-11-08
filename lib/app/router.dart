@@ -1,4 +1,6 @@
+import 'package:fat_fish_mobile/features/expediente/presentation/expediente_scope.dart';
 import 'package:fat_fish_mobile/features/expediente/presentation/pages/expediente_page.dart';
+import 'package:fat_fish_mobile/features/expediente/presentation/pages/historial_page.dart';
 import 'package:fat_fish_mobile/features/jugador/presentation/pages/jugador_page.dart';
 import 'package:fat_fish_mobile/features/ranking/presentation/pages/ranking_page.dart';
 import 'package:go_router/go_router.dart';
@@ -27,10 +29,25 @@ GoRouter buildRouter() {
           StatefulShellBranch(
             observers: [SentryNavigatorObserver()],
             routes: [
-              GoRoute(
-                name: 'expediente',
-                path: AppRoutes.expediente,
-                builder: (context, state) => const ExpedientePage(),
+              // The dossier and its history share one Cubit, given above both pages.
+              ShellRoute(
+                observers: [SentryNavigatorObserver()],
+                builder: (context, state, child) =>
+                    ExpedienteScope(child: child),
+                routes: [
+                  GoRoute(
+                    name: 'expediente',
+                    path: AppRoutes.expediente,
+                    builder: (context, state) => const ExpedientePage(),
+                    routes: [
+                      GoRoute(
+                        name: 'historial',
+                        path: 'historial',
+                        builder: (context, state) => const HistorialPage(),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),

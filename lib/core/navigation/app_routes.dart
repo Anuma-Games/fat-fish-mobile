@@ -2,6 +2,7 @@
 /// navigate without importing the router, which imports every feature.
 abstract final class AppRoutes {
   static const expediente = '/expediente';
+  static const historial = '/expediente/historial';
   static const ranking = '/ranking';
   static const jugador = '/jugador';
 }

@@ -4,7 +4,7 @@
 String describeActivity(DateTime? lastActivity, {required DateTime now}) {
   if (lastActivity == null) return 'Sin actividad';
 
-  final days = _calendarDaysBetween(lastActivity, now);
+  final days = calendarDaysBetween(lastActivity, now);
   return switch (days) {
     // A clock slightly ahead on the server can give a date in the future.
     <= 0 => 'Activo hoy',
@@ -18,7 +18,7 @@ String describeActivity(DateTime? lastActivity, {required DateTime now}) {
 
 /// Days between the two local dates, ignoring the time: 23:00 yesterday is 1 day ago.
 /// UTC dates avoid the 23 or 25 hour days of daylight saving time.
-int _calendarDaysBetween(DateTime from, DateTime to) {
+int calendarDaysBetween(DateTime from, DateTime to) {
   DateTime dayOf(DateTime date) {
     final local = date.toLocal();
     return DateTime.utc(local.year, local.month, local.day);

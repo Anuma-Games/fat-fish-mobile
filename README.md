@@ -37,7 +37,7 @@ público**. La retroalimentación y la encuesta se quedan en la PWA.
 |----------------------------------------------------|---------------|
 | Base: estructura, configuración, navegación y tema | ✅ Construido |
 | Mi jugador y búsqueda por alias o ID               | ✅ Construido |
-| Expediente e historial                             | ⏳ Pendiente  |
+| Expediente e historial                             | ✅ Construido |
 | Ranking mundial                                    | ⏳ Pendiente  |
 | Consulta sin conexión                              | ⏳ Pendiente  |
 | APK publicado                                      | ⏳ Pendiente  |
@@ -57,13 +57,13 @@ Requiere Flutter 3.47.7 (canal stable); para el APK, Android SDK y Java 17.
 **Configuración.** La URL y la llave de la API se leen al compilar, así que cambian sin tocar el código. Copia
 `config/example.json` a `config/local.json` (ignorado por Git):
 
-| Clave          | Valor                                                              | Por defecto                                                             |
-|----------------|--------------------------------------------------------------------|-------------------------------------------------------------------------|
-| `API_BASE_URL` | Dirección de la API, sin `/` final                                 | `http://10.0.2.2:8080`: la API local vista desde el emulador de Android |
-| `API_KEY`      | Llave de la cabecera `X-Api-Key`; se pide al responsable de la API | Vacía (la API local no la pide)                                         |
-| `SENTRY_DSN`   | DSN del proyecto `fat-fish-mobile` en Sentry (errores y rendimiento) | Vacío: Sentry desactivado (pruebas y CI)                              |
-| `SENTRY_ENVIRONMENT` | Ambiente que se muestra en Sentry (`development`, `staging`, `production`) | `development`                                           |
-| `SENTRY_TEST_BUTTON` | `true` muestra un botón que lanza un error de prueba para verificar Sentry | `false`                                                 |
+| Clave                | Valor                                                                      | Por defecto                                                             |
+|----------------------|----------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| `API_BASE_URL`       | Dirección de la API, sin `/` final                                         | `http://10.0.2.2:8080`: la API local vista desde el emulador de Android |
+| `API_KEY`            | Llave de la cabecera `X-Api-Key`; se pide al responsable de la API         | Vacía (la API local no la pide)                                         |
+| `SENTRY_DSN`         | DSN del proyecto `fat-fish-mobile` en Sentry (errores y rendimiento)       | Vacío: Sentry desactivado (pruebas y CI)                                |
+| `SENTRY_ENVIRONMENT` | Ambiente que se muestra en Sentry (`development`, `staging`, `production`) | `development`                                                           |
+| `SENTRY_TEST_BUTTON` | `true` muestra un botón que lanza un error de prueba para verificar Sentry | `false`                                                                 |
 
 - El HTTP sin cifrar solo se permite en depuración. En un iPhone conviene usar la API en `https`.
 - La llave queda dentro del APK y se puede extraer, así que solo debe abrir endpoints de lectura pública.
@@ -74,7 +74,7 @@ Requiere Flutter 3.47.7 (canal stable); para el APK, Android SDK y Java 17.
 ```mermaid
 flowchart LR
     Juego[Juego en Unity] -->|partidas| API[(API y PostgreSQL)]
-    API -->|/api/pwa/...| App[App móvil]
+    API -->|/api/pwa/ . . .| App[App móvil]
     App <--> Drift[(Caché local<br/>SQLite)]
 ```
 
@@ -145,19 +145,21 @@ stateDiagram-v2
 
 ## 7. Experiencia de usuario
 
-La app usa la guía de estilo de la PWA: fondo con el patrón de rombos, barras de paño con borde dorado e íconos pixel
-art de 12 × 12 (`PixelIcon`). Tiene tres pestañas: **Expediente**, **Ranking** y **Mi jugador**. Los valores están en
-`lib/core/theme/tokens.dart` con los mismos nombres que `tokens.css`, y `lib/app/theme/app_theme.dart` los aplica a los
-componentes de Material, así que las pantallas no escriben colores ni medidas.
+La app sigue el diseño de [Fat Fish - App móvil](https://claude.ai/artifact/PKb3b1jTvdyMvX6TVU9Sr8): fondo con el
+patrón de rombos, barra superior oscura e íconos pixel art de 12 × 12 (`PixelIcon`). Lo que el casino sabe del jugador
+va en una hoja de papel (`RuledPaper`, `PaperText`). Los valores están en `lib/core/theme/tokens.dart`, y
+`lib/app/theme/app_theme.dart` los aplica a los componentes de Material, así que las pantallas no escriben colores ni
+medidas.
 
-| Uso                | Valor                                                                                                               |
-|--------------------|---------------------------------------------------------------------------------------------------------------------|
-| Fondo y tarjetas   | `#0B1416` y `#172A25`                                                                                               |
-| Paño (barras)      | `#0D3522` y `#105030`                                                                                               |
-| Dorado             | `#E8B850`                                                                                                           |
-| Victoria / derrota | `#6FD39A` / `#882020` (ficha) y `#F08A7E` (cifras)                                                                  |
-| Texto              | `#F2E8CC` y `#9AA8A2`                                                                                               |
-| Fuentes            | **Jersey 10** (títulos), **Press Start 2P** (etiquetas) y **Geist** (texto), en `assets/fonts/` con su licencia OFL |
+| Uso              | Valor                                                                                                                                          |
+|------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| Fondo y tarjetas | `#0B1416` y `#172A25`                                                                                                                          |
+| Paño             | `#0D3522` y `#105030`                                                                                                                          |
+| Dorado           | `#E8B850`, para las acciones                                                                                                                   |
+| Rojo             | `#B3261E`, el único: pérdida, derrota y peligro; como texto solo sobre papel                                                                   |
+| Texto            | `#F2E8CC` y `#9AA8A2`                                                                                                                          |
+| Papel y tinta    | `#E6DCC3` y `#231E17`                                                                                                                          |
+| Fuentes          | **Jersey 10** (títulos), **Press Start 2P** (etiquetas), **Geist** (texto) y **Courier Prime** (papel), en `assets/fonts/` con su licencia OFL |
 
 El ícono de la app sale de `assets/icon/` y se regenera con `dart run flutter_launcher_icons`.
 
