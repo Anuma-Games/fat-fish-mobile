@@ -202,6 +202,40 @@ void main() {
   );
 
   blocTest<ExpedienteCubit, ExpedienteState>(
+    'reports a second failed refresh in a row',
+    setUp: () {
+      when(() => repository.getProfile('7'))
+          .thenAnswer((_) async => throw const NetworkException());
+      when(() => repository.getMatches('7', page: 0))
+          .thenAnswer((_) async => matchPage(first));
+    },
+    build: build,
+    seed: () => loaded.copyWith(failure: const NetworkException().message),
+    act: (cubit) => cubit.refresh(),
+    expect: () => [
+      loaded,
+      loaded.copyWith(failure: const NetworkException().message),
+    ],
+  );
+
+  blocTest<ExpedienteCubit, ExpedienteState>(
+    'ignores "Ver más" while a refresh is on its way',
+    setUp: () {
+      final pending = Completer<PlayerProfile>();
+      when(() => repository.getProfile('7')).thenAnswer((_) => pending.future);
+      when(() => repository.getMatches('7', page: 0))
+          .thenAnswer((_) async => matchPage(first));
+    },
+    build: build,
+    seed: () => loaded,
+    act: (cubit) {
+      unawaited(cubit.refresh());
+      cubit.loadMore();
+    },
+    verify: (_) => verifyNever(() => repository.getMatches('7', page: 1)),
+  );
+
+  blocTest<ExpedienteCubit, ExpedienteState>(
     'a refresh drops the page of a "Ver más" still on its way',
     setUp: () {
       answerFirstPage();
