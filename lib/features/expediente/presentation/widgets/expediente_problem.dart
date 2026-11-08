@@ -92,7 +92,7 @@ class GoToJugadorButton extends StatelessWidget {
       ),
       child: FilledButton(
         style: FilledButton.styleFrom(minimumSize: const Size(44, 48)),
-        onPressed: () => GoRouter.maybeOf(context)?.go(AppRoutes.jugador),
+        onPressed: () => GoRouter.maybeOf(context)?.push(AppRoutes.jugador),
         child: Text(label),
       ),
     );

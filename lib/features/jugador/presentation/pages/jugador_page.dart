@@ -140,65 +140,75 @@ class _JugadorViewState extends State<_JugadorView> {
     );
 
     return Scaffold(
-      // Transparent so the casino pattern of AppShell shows through.
-      backgroundColor: Colors.transparent,
+      // Plain background, so the field and the lists lead.
+      backgroundColor: FatFishColors.bg900,
+      extendBodyBehindAppBar: true,
       appBar: const FatFishAppBar(title: 'Mi jugador'),
-      body: ListView(
-        padding: FatFishInsets.page,
-        // Scrolling the results hides the keyboard.
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        children: [
-          _SearchField(controller: _query, onClear: _clearSearch),
-          const SizedBox(height: FatFishSpacing.s4),
-          BlocBuilder<PlayerSearchCubit, PlayerSearchState>(
-            builder: (context, state) => AnimatedSwitcher(
-              duration: motionDuration(context, FatFishMotion.base),
-              switchInCurve: FatFishMotion.curve,
-              // Top aligned: the outgoing and incoming views start under the field.
-              layoutBuilder: (current, previous) => Stack(
-                alignment: Alignment.topCenter,
-                children: [...previous, ?current],
-              ),
-              // One key per view, not per state: Loading and Loaded are the same list.
-              child: KeyedSubtree(
-                key: ValueKey(switch (state) {
-                  PlayerSearchInitial() => 'home',
-                  PlayerSearchLoading() || PlayerSearchLoaded() => 'results',
-                  PlayerSearchEmpty() => 'empty',
-                  PlayerSearchFailure() => 'failure',
-                }),
-                child: switch (state) {
-                  PlayerSearchInitial() => Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Hidden while reading the device, so it does not flash
-                      // "Sin elegir" and animate to gold on every start.
-                      if (myPlayerState is! MyPlayerLoading)
-                        MyPlayerCard(
-                          player: myPlayer,
-                          onClear: context.read<MyPlayerCubit>().clear,
-                        ),
-                      if (otherRecents.isNotEmpty)
-                        _RecentPlayers(otherRecents, onChoose: _choose),
-                    ],
-                  ),
-                  // The spinner lives in the search field, so the list never moves.
-                  PlayerSearchLoading(:final players) => results(players),
-                  PlayerSearchLoaded(:final players) => results(players),
-                  PlayerSearchEmpty(:final query) => Notice(
-                    icon: PixelIcons.search,
-                    text: 'Nadie coincide con "$query".',
-                  ),
-                  PlayerSearchFailure(:final message) => Notice(
-                    icon: PixelIcons.offline,
-                    text: message,
-                    color: FatFishColors.cream100,
-                  ),
-                },
+      // Under the Scaffold, whose MediaQuery counts the bar over the content.
+      body: Builder(
+        builder: (context) => ListView(
+          padding: FatFishAppBar.pageInsets(context),
+          // Scrolling the results hides the keyboard.
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          children: [
+            Text(
+              '¿Quién eres en la mesa?',
+              style: Theme.of(context).textTheme.headlineLarge
+                  ?.copyWith(height: 1),
+            ),
+            const SizedBox(height: 20),
+            _SearchField(controller: _query, onClear: _clearSearch),
+            const SizedBox(height: FatFishSpacing.s4),
+            BlocBuilder<PlayerSearchCubit, PlayerSearchState>(
+              builder: (context, state) => AnimatedSwitcher(
+                duration: motionDuration(context, FatFishMotion.base),
+                switchInCurve: FatFishMotion.curve,
+                // Top aligned: the outgoing and incoming views start under the field.
+                layoutBuilder: (current, previous) => Stack(
+                  alignment: Alignment.topCenter,
+                  children: [...previous, ?current],
+                ),
+                // One key per view, not per state: Loading and Loaded are the same list.
+                child: KeyedSubtree(
+                  key: ValueKey(switch (state) {
+                    PlayerSearchInitial() => 'home',
+                    PlayerSearchLoading() || PlayerSearchLoaded() => 'results',
+                    PlayerSearchEmpty() => 'empty',
+                    PlayerSearchFailure() => 'failure',
+                  }),
+                  child: switch (state) {
+                    PlayerSearchInitial() => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Only with a player: without one, the question above
+                        // already says what to do.
+                        if (myPlayer != null)
+                          MyPlayerCard(
+                            player: myPlayer,
+                            onClear: context.read<MyPlayerCubit>().clear,
+                          ),
+                        if (otherRecents.isNotEmpty)
+                          _RecentPlayers(otherRecents, onChoose: _choose),
+                      ],
+                    ),
+                    // The spinner lives in the search field, so the list never moves.
+                    PlayerSearchLoading(:final players) => results(players),
+                    PlayerSearchLoaded(:final players) => results(players),
+                    PlayerSearchEmpty(:final query) => Notice(
+                      icon: PixelIcons.search,
+                      text: 'Nadie coincide con "$query".',
+                    ),
+                    PlayerSearchFailure(:final message) => Notice(
+                      icon: PixelIcons.offline,
+                      text: message,
+                      color: FatFishColors.cream100,
+                    ),
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

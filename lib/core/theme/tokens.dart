@@ -75,6 +75,18 @@ enum FatFishMedal {
   final Color score;
 }
 
+/// The lamp over the table on the welcome screen: warm light, a dark metal shade and
+/// the near-black of the room around it.
+abstract final class FatFishLamp {
+  static const light = Color(0xFFFFD696);
+  static const bulb = Color(0xFFFFF6DC);
+  static const cord = Color(0xFF1C1C1A);
+  static const shadeTop = Color(0xFF34342E);
+  static const shadeMiddle = Color(0xFF111110);
+  static const shadeBottom = Color(0xFF050505);
+  static const room = Color(0xFF040706);
+}
+
 /// Font families declared in pubspec.yaml (files in assets/fonts).
 abstract final class FatFishFonts {
   /// Titles and big numbers.

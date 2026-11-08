@@ -35,15 +35,19 @@ class ExpedientePage extends StatelessWidget {
       body: switch (myPlayer) {
         // Reading the device takes a moment; nothing flashes meanwhile.
         MyPlayerLoading() => const SizedBox.shrink(),
-        MyPlayerNone() => ListView(
-          padding: FatFishAppBar.pageInsets(context),
-          children: const [
-            Notice(
-              icon: PixelIcons.player,
-              text: 'Elige tu jugador para ver lo que el casino sabe de ti.',
-              action: GoToJugadorButton('Buscar mi jugador'),
-            ),
-          ],
+        // The router sends this case to the welcome screen; this stays for a
+        // page shown without the router.
+        MyPlayerNone() => Builder(
+          builder: (context) => ListView(
+            padding: FatFishAppBar.pageInsets(context),
+            children: const [
+              Notice(
+                icon: PixelIcons.player,
+                text: 'Elige tu jugador para ver lo que el casino sabe de ti.',
+                action: GoToJugadorButton('Buscar mi jugador'),
+              ),
+            ],
+          ),
         ),
         MyPlayerChosen(:final player) => ExpedienteFailureListener(
           child: _ExpedienteView(player),
@@ -115,7 +119,7 @@ class _Dossier extends StatelessWidget {
         DossierSheet(
           profile: state.profile,
           now: DateTime.now(),
-          onChangePlayer: () => context.go(AppRoutes.jugador),
+          onChangePlayer: () => context.push(AppRoutes.jugador),
         ),
         if (cut != null) ...[
           const SizedBox(height: 20),
