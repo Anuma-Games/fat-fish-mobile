@@ -1,10 +1,10 @@
+import 'package:fat_fish_mobile/features/ajustes/presentation/haptics.dart';
 import 'package:fat_fish_mobile/core/presentation/motion.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/dashed_circle.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/game_icon.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/pixel_icon.dart';
 import 'package:fat_fish_mobile/core/theme/tokens.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 /// One tab of the bar: its name, and its pixel icon or, for the table, the game icon.
 typedef NavTab = ({String label, PixelIcons? icon});
@@ -58,14 +58,14 @@ class _FatFishNavBarState extends State<FatFishNavBar> {
       widget.onSelect(index);
       return;
     }
-    HapticFeedback.lightImpact();
+    Haptics.light(context);
     widget.onSelect(index);
   }
 
   void _dragTo(double dx, double width) {
     final index = _indexAt(dx, width);
     if (index == _dragIndex) return;
-    HapticFeedback.selectionClick();
+    Haptics.selection(context);
     setState(() => _dragIndex = index);
   }
 

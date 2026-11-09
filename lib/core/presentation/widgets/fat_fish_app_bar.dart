@@ -1,13 +1,15 @@
 import 'package:fat_fish_mobile/core/presentation/bars_visibility.dart';
 import 'package:fat_fish_mobile/core/presentation/motion.dart';
+import 'package:fat_fish_mobile/core/presentation/widgets/app_bar_actions.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/pixel_icon.dart';
 import 'package:fat_fish_mobile/core/theme/tokens.dart';
 import 'package:flutter/material.dart';
 
-/// Top bar of the design: dark strip with the section name in uppercase, and a back
-/// arrow when the screen was opened over another. No logo: the brand lives on the table.
+/// Top bar of the design: dark strip with the section name in uppercase, a back arrow
+/// when the screen was opened over another, and the sound and settings buttons
+/// ([AppBarActions]). No logo: the brand lives on the table.
 class FatFishAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const FatFishAppBar({super.key, required this.title});
+  const FatFishAppBar({super.key, required this.title, this.settings = true});
 
   static const height = 64.0;
 
@@ -27,6 +29,9 @@ class FatFishAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   final String title;
 
+  /// False on the settings screen itself: its gear would open the same screen.
+  final bool settings;
+
   @override
   Size get preferredSize => const Size.fromHeight(height);
 
@@ -44,8 +49,12 @@ class FatFishAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _bar(BuildContext context, {required bool canPop}) {
+    final actions = AppBarActions.maybeOf(context);
+
     return AppBar(
       automaticallyImplyLeading: false,
+      actionsPadding: const EdgeInsets.only(right: FatFishSpacing.s1),
+      actions: [?actions?.call(context, settings: settings)],
       // The arrow sits 4 px from the edge, so its 44 px target lines up with the 16 px margin.
       titleSpacing: canPop ? FatFishSpacing.s1 : FatFishSpacing.s4,
       title: Row(

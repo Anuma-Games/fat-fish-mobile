@@ -11,4 +11,7 @@ abstract final class AppRoutes {
 
   /// Search and choose a player. Opened over the tabs with `push`, so back returns.
   static const jugador = '/jugador';
+
+  /// Sound, vibration and the help line. Opened over the tabs with `push`.
+  static const ajustes = '/ajustes';
 }

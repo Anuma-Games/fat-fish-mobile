@@ -80,8 +80,9 @@ void main() {
   Future<AppDatabase> pumpApp(
     WidgetTester tester, {
     bool player = false,
+    AppDatabase? database,
   }) async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = database ?? AppDatabase(NativeDatabase.memory());
     if (player) {
       await db
           .into(db.myPlayers)
@@ -168,7 +169,7 @@ void main() {
     await tester.tap(tab('Mesa'));
     await tester.pumpAndSettle();
     expect(open(), 1);
-    expect(find.text('Toma asiento'), findsOneWidget);
+    expect(find.text('Toca la ruleta\npara girarla...'), findsOneWidget);
 
     // Slide from the table to the ranking and lift the finger there.
     final from = tester.getCenter(tab('Mesa'));
@@ -177,6 +178,53 @@ void main() {
     await tester.pumpAndSettle();
     expect(open(), 2);
     expect(find.text('Mejores puntajes'), findsOneWidget);
+  });
+
+  testWidgets('the speaker and the gear of the top bar, remembered on reopen', (
+    tester,
+  ) async {
+    // On a file: closing the app closes its database.
+    final folder = Directory.systemTemp.createTempSync('fat_fish_');
+    addTearDown(() => folder.deleteSync(recursive: true));
+    final file = File('${folder.path}/app.sqlite');
+    await pumpApp(
+      tester,
+      player: true,
+      database: AppDatabase(NativeDatabase(file)),
+    );
+    expect(find.byTooltip('Encender el ambiente de fondo'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Encender el ambiente de fondo'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Apagar el ambiente de fondo'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Ajustes'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sonidos de la mesa'), findsOneWidget);
+    // Ajustes has no gear of its own.
+    expect(find.byTooltip('Ajustes'), findsNothing);
+
+    await tester.tap(find.bySemanticsLabel('Sonidos de la mesa'));
+    await tester.tap(find.bySemanticsLabel('Vibración'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Volver'));
+    await tester.pumpAndSettle();
+    expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
+
+    // Opening the app again keeps both choices.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    final db = await pumpApp(
+      tester,
+      database: AppDatabase(NativeDatabase(file)),
+    );
+    expect(find.byTooltip('Apagar el ambiente de fondo'), findsOneWidget);
+    final row = await tester.runAsync(
+      () => db.select(db.appSettings).getSingle(),
+    );
+    expect(row!.ambienceOn, isTrue);
+    expect(row.tableSoundsOn, isTrue);
+    expect(row.vibration, isFalse);
   });
 
   testWidgets('the bars hide while scrolling down and return when going up', (

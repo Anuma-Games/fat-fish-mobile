@@ -3,6 +3,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:fat_fish_mobile/app/app.dart';
 import 'package:fat_fish_mobile/app/app_providers.dart';
+import 'package:fat_fish_mobile/core/audio/table_sound.dart';
 import 'package:fat_fish_mobile/core/config/app_config.dart';
 import 'package:fat_fish_mobile/core/network/api_client.dart';
 import 'package:fat_fish_mobile/core/storage/app_database.dart';
@@ -26,6 +27,7 @@ Future<void> main() async {
             httpClient: SentryHttpClient(),
           ),
           database: AppDatabase(),
+          tableSound: AudioTableSound(),
           child: const FatFishApp(),
         ),
       ),
