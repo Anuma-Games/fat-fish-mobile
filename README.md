@@ -41,7 +41,7 @@ público**. La retroalimentación y la encuesta se quedan en la PWA.
 | Ranking mundial                                    | ✅ Construido |
 | Bienvenida y barra de navegación con gesto         | ✅ Construido |
 | La mesa, ajustes y sonido                          | ⏳ Pendiente  |
-| Consulta sin conexión                              | ⏳ Pendiente  |
+| Consulta sin conexión                              | ✅ Construido |
 | APK publicado                                      | ⏳ Pendiente  |
 
 ## 3. Cómo ejecutarla
@@ -126,14 +126,19 @@ Página → Cubit → Caso de uso → Repositorio (domain) ← Implementación (
 | Sin red o sin respuesta | `NetworkException`            | Los últimos datos guardados               |
 | `404`                   | `NotFoundException`           | "No encontramos lo que buscabas"          |
 | Otro `4xx`              | `SomethingWentWrongException` | Error nuestro (llave o petición inválida) |
-| `3xx` o `5xx`           | `ServerException`             | "El servidor no pudo responder"           |
+| `3xx` o `5xx`           | `ServerException`             | "No pudimos cargar los datos"             |
 | `2xx` con otro formato  | `UnexpectedResponseException` | Error nuestro (contrato distinto)         |
 
 ## 6. Sin conexión
 
-La caché en SQLite ([Drift](https://drift.simonbinder.eu/)) es la única fuente de los datos en pantalla: la red solo la
-actualiza. Sin conexión se muestran los últimos datos con el aviso "Sin conexión" y su fecha. Cada feature agrega sus
-tablas a `lib/core/storage/app_database.dart`; un cambio de esquema sube `schemaVersion` con su migración.
+`CachedApi` guarda en SQLite ([Drift](https://drift.simonbinder.eu/)) la última respuesta del expediente, el historial
+y el ranking (tabla `cached_responses`, una fila por petición). Si la red falla (`NetworkException`), devuelve esa copia
+con su fecha y la pantalla muestra el aviso "Sin conexión": "Datos guardados el 3 de noviembre, 2026, a las 18:42.
+Pueden estar desactualizados." Un `404` o un error del servidor no usan la copia. Sin conexión, el historial muestra las
+partidas guardadas y "Ver más" vuelve cuando hay red. La búsqueda de jugadores siempre necesita conexión.
+
+Cada feature agrega sus tablas a `lib/core/storage/app_database.dart`; un cambio de esquema sube `schemaVersion` con su
+migración.
 
 ```mermaid
 stateDiagram-v2
@@ -151,9 +156,11 @@ La app sigue el diseño de [Fat Fish - App móvil](https://claude.ai/artifact/PK
 patrón de rombos, barra superior oscura e íconos pixel art de 12 × 12 (`PixelIcon`). Lo que el casino sabe del jugador
 va en una hoja de papel (`RuledPaper`, `PaperText`).
 
-Sin jugador guardado la app abre la **Bienvenida**. Con jugador, abre el expediente. Abajo flota la barra con tres fichas,
-**Expediente**, **Mesa** y **Ranking**, que cambian al tocarlas o al deslizar el dedo sobre la barra. Las dos barras se
-ocultan al bajar y vuelven al subir. **Mi jugador** se abre desde "Cambiar" en el expediente. Los valores están en `lib/core/theme/tokens.dart`, y
+Sin jugador guardado la app abre la **Bienvenida**. Con jugador, abre el expediente. Abajo flota la barra con tres
+fichas, **Expediente**, **Mesa** y **Ranking**, que cambian al tocarlas o al deslizar el dedo sobre la barra. Las dos
+barras se
+ocultan al bajar y vuelven al subir. **Mi jugador** se abre desde "Cambiar" en el expediente. Los valores están en
+`lib/core/theme/tokens.dart`, y
 `lib/app/theme/app_theme.dart` los aplica a los componentes de Material, así que las pantallas no escriben colores ni
 medidas.
 
@@ -165,7 +172,12 @@ medidas.
 | Rojo             | `#B3261E`, el único: pérdida, derrota y peligro; como texto solo sobre papel                                                                   |
 | Texto            | `#F2E8CC` y `#9AA8A2`                                                                                                                          |
 | Papel y tinta    | `#E6DCC3` y `#231E17`                                                                                                                          |
-| Fuentes          | **Jersey 10** (títulos), **Press Start 2P** (etiquetas), **Geist** (texto) y **Courier Prime** (papel), en `assets/fonts/` con su licencia OFL |
+| Fuentes          | **Jersey 10** (títulos), **Fat Fish Pixel** (etiquetas), **Geist** (texto) y **Courier Prime** (papel), en `assets/fonts/` con su licencia OFL |
+
+**Fat Fish Pixel** es Press Start 2P con las mayúsculas acentuadas (Á É Í Ó Ú Ñ Ü) a altura completa, como la fuente
+`fat-fish-acentos` de la PWA: en la original parecen minúsculas. Se genera con
+`python -I tool/fuente_pixel.py assets/fonts/PressStart2P-Regular.ttf` (requiere fontTools) y lleva otro nombre porque
+"Press Start 2P" es un nombre reservado de su licencia.
 
 El ícono de la app sale de `assets/icon/` y se regenera con `dart run flutter_launcher_icons`.
 

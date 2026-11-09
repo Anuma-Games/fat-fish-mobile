@@ -92,8 +92,10 @@ abstract final class FatFishFonts {
   /// Titles and big numbers.
   static const display = 'Jersey10';
 
-  /// Short pixel labels in uppercase; hard to read in long text.
-  static const label = 'PressStart2P';
+  /// Short pixel labels in uppercase; hard to read in long text. Press Start 2P with the
+  /// accented capitals (Á É Í Ó Ú Ñ Ü) at full height, so "CONEXIÓN" does not read
+  /// "CONEXIóN". Its accents rise above the line, like in the PWA.
+  static const label = 'FatFishPixel';
 
   /// Body text.
   static const body = 'Geist';
@@ -157,4 +159,8 @@ abstract final class FatFishMotion {
   static const stagger = Duration(milliseconds: 40);
 
   static const curve = Curves.easeOutCubic;
+
+  /// Shortest wait of a retry the player asked for. Without connection the answer
+  /// comes at once, and the spinner of "Reintentar" would not be seen.
+  static const retryMinimum = Duration(milliseconds: 600);
 }

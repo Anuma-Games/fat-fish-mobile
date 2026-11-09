@@ -1,7 +1,10 @@
 import 'package:fat_fish_mobile/core/presentation/motion.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/fat_fish_app_bar.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/notice.dart';
+import 'package:fat_fish_mobile/core/presentation/widgets/offline_notice.dart';
+import 'package:fat_fish_mobile/features/expediente/presentation/formatters/expediente_text.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/pixel_icon.dart';
+import 'package:fat_fish_mobile/core/presentation/widgets/retry_button.dart';
 import 'package:fat_fish_mobile/core/theme/tokens.dart';
 import 'package:fat_fish_mobile/features/expediente/presentation/widgets/match_row.dart';
 import 'package:fat_fish_mobile/features/jugador/domain/entities/player_summary.dart';
@@ -89,10 +92,7 @@ class _RankingView extends StatelessWidget {
               icon: PixelIcons.offline,
               text: message,
               color: FatFishColors.cream100,
-              action: OutlinedButton(
-                onPressed: cubit.load,
-                child: const Text('Reintentar'),
-              ),
+              action: RetryButton(onRetry: cubit.retry, outlined: true),
             ),
           ],
         ),
@@ -125,6 +125,13 @@ class _Ranking extends StatelessWidget {
       padding: FatFishAppBar.pageInsets(context),
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
+        if (ranking.savedAt case final savedAt?) ...[
+          OfflineNotice(
+            savedOn: formatSavedAt(savedAt),
+            onRetry: context.read<RankingCubit>().refresh,
+          ),
+          const SizedBox(height: FatFishSpacing.s4),
+        ],
         Text(
           'Mejores puntajes',
           style: textTheme.headlineLarge?.copyWith(height: 1),

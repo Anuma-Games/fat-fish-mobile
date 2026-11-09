@@ -8,9 +8,11 @@ class RankingDto {
     required this.pagina,
     required this.totalPaginas,
     this.miPosicion,
+    this.savedAt,
   });
 
-  factory RankingDto.fromJson(Map<String, Object?> json) {
+  /// [savedAt] is the date of a copy read from the device; null for a fresh answer.
+  factory RankingDto.fromJson(Map<String, Object?> json, {DateTime? savedAt}) {
     final page = json['pagina'] as Map<String, Object?>;
     return RankingDto(
       contenido: (page['contenido'] as List<Object?>)
@@ -22,6 +24,7 @@ class RankingDto {
         final Map<String, Object?> entry => _entryFromJson(entry),
         _ => null,
       },
+      savedAt: savedAt,
     );
   }
 
@@ -29,12 +32,14 @@ class RankingDto {
   final int pagina;
   final int totalPaginas;
   final RankingEntry? miPosicion;
+  final DateTime? savedAt;
 
   Ranking toEntity() => Ranking(
     entries: contenido,
     page: pagina,
     totalPages: totalPaginas,
     myPosition: miPosicion,
+    savedAt: savedAt,
   );
 
   static RankingEntry _entryFromJson(Map<String, Object?> json) => RankingEntry(

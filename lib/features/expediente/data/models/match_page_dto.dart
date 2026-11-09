@@ -7,27 +7,35 @@ class MatchPageDto {
     required this.pagina,
     required this.totalElementos,
     required this.ultima,
+    this.savedAt,
   });
 
-  factory MatchPageDto.fromJson(Map<String, Object?> json) => MatchPageDto(
+  /// [savedAt] is the date of a copy read from the device; null for a fresh answer.
+  factory MatchPageDto.fromJson(
+    Map<String, Object?> json, {
+    DateTime? savedAt,
+  }) => MatchPageDto(
     contenido: (json['contenido'] as List<Object?>)
         .map((item) => _matchFromJson(item as Map<String, Object?>))
         .toList(),
     pagina: json['pagina'] as int,
     totalElementos: json['totalElementos'] as int,
     ultima: json['ultima'] as bool,
+    savedAt: savedAt,
   );
 
   final List<PlayedMatch> contenido;
   final int pagina;
   final int totalElementos;
   final bool ultima;
+  final DateTime? savedAt;
 
   MatchPage toEntity() => MatchPage(
     matches: contenido,
     page: pagina,
     totalMatches: totalElementos,
     isLast: ultima,
+    savedAt: savedAt,
   );
 
   /// MatchDto in the API. `creadaEn` carries the date the match ended.

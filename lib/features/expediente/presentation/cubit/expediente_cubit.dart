@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:fat_fish_mobile/core/network/api_exception.dart';
+import 'package:fat_fish_mobile/core/presentation/motion.dart';
+import 'package:fat_fish_mobile/core/theme/tokens.dart';
 import 'package:fat_fish_mobile/features/expediente/domain/entities/played_match.dart';
 import 'package:fat_fish_mobile/features/expediente/domain/entities/player_profile.dart';
 import 'package:fat_fish_mobile/features/expediente/domain/usecases/get_matches.dart';
@@ -14,11 +16,15 @@ class ExpedienteCubit extends Cubit<ExpedienteState> {
     required this.playerId,
     required this._getProfile,
     required this._getMatches,
+    this.minimumWait = FatFishMotion.retryMinimum,
   }) : super(const ExpedienteLoading());
 
   final String playerId;
   final GetProfile _getProfile;
   final GetMatches _getMatches;
+
+  /// Shortest refresh or retry, so the spinner the player asked for is seen.
+  final Duration minimumWait;
 
   /// Grows with every request; an answer whose number is not the latest is dropped,
   /// so a refresh and a "Ver más" that cross never mix their pages.
@@ -29,6 +35,10 @@ class ExpedienteCubit extends Cubit<ExpedienteState> {
     emit(const ExpedienteLoading());
     await _loadFirstPage();
   }
+
+  /// "Reintentar" after a failed first load: the error stays on screen, with its button
+  /// spinning, until the answer arrives, instead of flashing the loading blocks.
+  Future<void> retry() => _loadFirstPage(slow: true);
 
   /// Refreshes still on their way; "Ver más" waits for them.
   int _refreshing = 0;
@@ -42,23 +52,29 @@ class ExpedienteCubit extends Cubit<ExpedienteState> {
     emit(current.copyWith());
     _refreshing++;
     try {
-      await _loadFirstPage();
+      await _loadFirstPage(reportOffline: true, slow: true);
     } finally {
       _refreshing--;
     }
   }
 
-  Future<void> _loadFirstPage() async {
+  /// With [reportOffline], an answer that only came from the device says so: the
+  /// player asked again and is still without connection. With [slow], it lasts at
+  /// least [minimumWait].
+  Future<void> _loadFirstPage({
+    bool reportOffline = false,
+    bool slow = false,
+  }) async {
     final request = ++_request;
     try {
       // Both requests travel at once.
-      final [
-        profile as PlayerProfile,
-        page as MatchPage,
-      ] = await Future.wait<Object>([
-        _getProfile(playerId),
-        _getMatches(playerId, page: 0),
-      ]);
+      final [profile as PlayerProfile, page as MatchPage] = await atLeast(
+        Future.wait<Object>([
+          _getProfile(playerId),
+          _getMatches(playerId, page: 0),
+        ]),
+        slow ? minimumWait : Duration.zero,
+      );
       if (request != _request || isClosed) return;
       emit(
         ExpedienteLoaded(
@@ -67,6 +83,9 @@ class ExpedienteCubit extends Cubit<ExpedienteState> {
           page: page.page,
           totalMatches: page.totalMatches,
           hasMore: !page.isLast,
+          failure: reportOffline && profile.savedAt != null
+              ? const NetworkException().message
+              : null,
         ),
       );
     } on NotFoundException {

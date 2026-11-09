@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:fat_fish_mobile/app/app.dart';
 import 'package:fat_fish_mobile/app/app_providers.dart';
 import 'package:fat_fish_mobile/app/nav_bar.dart';
 import 'package:fat_fish_mobile/core/network/api_client.dart';
+import 'package:fat_fish_mobile/core/network/api_exception.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/status_bar_blur.dart';
 import 'package:fat_fish_mobile/core/storage/app_database.dart';
+import 'package:fat_fish_mobile/features/ranking/presentation/pages/ranking_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -284,5 +288,71 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Cada partida, anotada'), findsNothing);
     expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
+  });
+
+  testWidgets('without connection it shows the last saved dossier and ranking', (
+    tester,
+  ) async {
+    var online = true;
+    // A file, so the second visit opens a new database over the same data, as the
+    // phone does when the app starts again.
+    final file = File(
+      '${Directory.systemTemp.createTempSync().path}/cache.sqlite',
+    );
+    final first = AppDatabase(NativeDatabase(file));
+    await first
+        .into(first.myPlayers)
+        .insert(MyPlayersCompanion.insert(playerId: '70', alias: 'Don Ramon'));
+    Future<void> openApp(AppDatabase db) async {
+      await tester.pumpWidget(
+        AppProviders(
+          apiClient: ApiClient(
+            baseUrl: 'https://api.test',
+            httpClient: MockClient((request) async {
+              if (!online) throw http.ClientException('sin red');
+              return answer(request);
+            }),
+          ),
+          database: db,
+          child: const FatFishApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    // First visit, online: the dossier and the ranking are saved on the device.
+    await openApp(first);
+    await tester.tap(tab('Ranking'));
+    await tester.pumpAndSettle();
+    expect(find.text('SIN CONEXIÓN'), findsNothing);
+
+    // Next visit, offline: the same data, with the notice and its date.
+    online = false;
+    // Closing the providers closes the first database.
+    await tester.pumpWidget(const SizedBox());
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await openApp(AppDatabase(NativeDatabase(file)));
+    expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
+    expect(find.text('SIN CONEXIÓN'), findsOneWidget);
+    expect(find.textContaining('Pueden estar desactualizados'), findsOneWidget);
+
+    // Retrying while still offline spins, then says so at the bottom.
+    await tester.tap(find.text('Reintentar'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text(const NetworkException().message), findsOneWidget);
+
+    await tester.tap(tab('Ranking'));
+    await tester.pumpAndSettle();
+    expect(find.text('jugador_1'), findsWidgets);
+    // The dossier tab stays alive behind; look only inside the ranking.
+    expect(
+      find.descendant(
+        of: find.byType(RankingPage),
+        matching: find.text('SIN CONEXIÓN'),
+      ),
+      findsOneWidget,
+    );
   });
 }

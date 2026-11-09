@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:drift/native.dart';
 import 'package:fat_fish_mobile/core/network/api_client.dart';
+import 'package:fat_fish_mobile/core/network/cached_api.dart';
+import 'package:fat_fish_mobile/core/storage/app_database.dart';
 import 'package:fat_fish_mobile/core/network/api_exception.dart';
 import 'package:fat_fish_mobile/features/expediente/data/datasources/expediente_remote_data_source.dart';
 import 'package:fat_fish_mobile/features/expediente/data/repositories/expediente_repository_impl.dart';
@@ -24,7 +27,11 @@ void main() {
         return http.Response.bytes(utf8.encode(jsonEncode(body)), status);
       }),
     );
-    return ExpedienteRepositoryImpl(remote: ExpedienteRemoteDataSource(api));
+    return ExpedienteRepositoryImpl(
+      remote: ExpedienteRemoteDataSource(
+        CachedApi(api: api, db: AppDatabase(NativeDatabase.memory())),
+      ),
+    );
   }
 
   test('reads the profile and maps the six statistics', () async {

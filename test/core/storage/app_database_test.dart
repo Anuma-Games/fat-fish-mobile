@@ -23,5 +23,6 @@ void main() {
 
     expect(await db.select(db.myPlayers).get(), isEmpty);
     expect(await db.select(db.recentPlayers).get(), isEmpty);
+    expect(await db.select(db.cachedResponses).get(), isEmpty);
   });
 }

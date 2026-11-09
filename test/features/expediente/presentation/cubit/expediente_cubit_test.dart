@@ -59,6 +59,8 @@ void main() {
     playerId: '7',
     getProfile: GetProfile(repository),
     getMatches: GetMatches(repository),
+    // The spinner wait is for people; the tests do not need it.
+    minimumWait: Duration.zero,
   );
 
   final first = [playedMatch('a'), playedMatch('b')];
@@ -256,5 +258,35 @@ void main() {
     },
     wait: const Duration(milliseconds: 20),
     expect: () => [loaded.copyWith(loadingMore: true), loaded],
+  );
+
+  blocTest<ExpedienteCubit, ExpedienteState>(
+    'a refresh that only finds the saved copy says it is still offline',
+    setUp: () {
+      when(() => repository.getProfile('7')).thenAnswer(
+        (_) async => PlayerProfile(
+          id: profile.id,
+          alias: profile.alias,
+          createdAt: profile.createdAt,
+          stats: profile.stats,
+          generatedAt: profile.generatedAt,
+          savedAt: DateTime(2026, 11, 3, 18, 42),
+        ),
+      );
+      when(() => repository.getMatches('7', page: 0))
+          .thenAnswer((_) async => matchPage(first, total: 4));
+    },
+    build: build,
+    seed: () => loaded,
+    act: (cubit) => cubit.refresh(),
+    expect: () => [
+      isA<ExpedienteLoaded>()
+          .having((s) => s.profile.savedAt, 'savedAt', isNotNull)
+          .having(
+            (s) => s.failure,
+            'failure',
+            const NetworkException().message,
+          ),
+    ],
   );
 }

@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:drift/native.dart';
 import 'package:fat_fish_mobile/core/network/api_client.dart';
+import 'package:fat_fish_mobile/core/network/cached_api.dart';
+import 'package:fat_fish_mobile/core/storage/app_database.dart';
 import 'package:fat_fish_mobile/core/network/api_exception.dart';
 import 'package:fat_fish_mobile/features/ranking/data/datasources/ranking_remote_data_source.dart';
 import 'package:fat_fish_mobile/features/ranking/data/repositories/ranking_repository_impl.dart';
@@ -20,7 +23,11 @@ void main() {
         return http.Response.bytes(utf8.encode(jsonEncode(body)), 200);
       }),
     );
-    return RankingRepositoryImpl(remote: RankingRemoteDataSource(api));
+    return RankingRepositoryImpl(
+      remote: RankingRemoteDataSource(
+        CachedApi(api: api, db: AppDatabase(NativeDatabase.memory())),
+      ),
+    );
   }
 
   Map<String, Object?> entry(int position, String id) => {

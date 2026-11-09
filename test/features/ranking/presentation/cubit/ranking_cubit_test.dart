@@ -28,8 +28,12 @@ Ranking rankingPage(int page, {int total = 3}) => Ranking(
 void main() {
   late _MockRankingRepository repository;
 
-  RankingCubit build() =>
-      RankingCubit(getRanking: GetRanking(repository), playerId: '7');
+  RankingCubit build() => RankingCubit(
+    getRanking: GetRanking(repository),
+    playerId: '7',
+    // The spinner wait is for people; the tests do not need it.
+    minimumWait: Duration.zero,
+  );
 
   setUp(() => repository = _MockRankingRepository());
 
@@ -160,5 +164,30 @@ void main() {
     expect: () => [RankingLoaded(ranking: rankingPage(2))],
     verify: (_) =>
         verifyNever(() => repository.getRanking(page: 0, playerId: '7')),
+  );
+
+  blocTest<RankingCubit, RankingState>(
+    'a refresh that only finds the saved copy says it is still offline',
+    setUp: () =>
+        when(() => repository.getRanking(page: 0, playerId: '7')).thenAnswer(
+          (_) async => Ranking(
+            entries: rankingPage(0).entries,
+            page: 0,
+            totalPages: 3,
+            savedAt: DateTime(2026, 11, 3, 18, 42),
+          ),
+        ),
+    build: build,
+    seed: () => RankingLoaded(ranking: rankingPage(0)),
+    act: (cubit) => cubit.refresh(),
+    expect: () => [
+      isA<RankingLoaded>()
+          .having((s) => s.ranking.savedAt, 'savedAt', isNotNull)
+          .having(
+            (s) => s.failure,
+            'failure',
+            const NetworkException().message,
+          ),
+    ],
   );
 }
