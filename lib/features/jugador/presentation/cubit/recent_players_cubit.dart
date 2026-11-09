@@ -16,7 +16,12 @@ class RecentPlayersCubit extends Cubit<List<PlayerSummary>> {
   final AddRecentPlayer _addRecentPlayer;
   final RemoveRecentPlayer _removeRecentPlayer;
 
-  Future<void> load() async => emit(await _getRecentPlayers());
+  /// The screen may close while the list loads (choosing a player leaves it): then
+  /// nothing is shown.
+  Future<void> load() async {
+    final players = await _getRecentPlayers();
+    if (!isClosed) emit(players);
+  }
 
   Future<void> add(PlayerSummary player) async {
     await _addRecentPlayer(player);
