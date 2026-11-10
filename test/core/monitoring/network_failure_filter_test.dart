@@ -7,38 +7,37 @@ import 'package:http/http.dart' as http;
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() {
-  SentryEvent? send(Object error) =>
+  final request = http.Request('GET', Uri.parse('https://api/ranking'));
+
+  /// What SentryHttpClient sends when an API request fails.
+  SentryEvent? fromApi(Object error) => dropNetworkFailures(
+    SentryEvent(throwable: error),
+    Hint.withMap({TypeCheckHint.httpRequest: request}),
+  );
+
+  SentryEvent? elsewhere(Object error) =>
       dropNetworkFailures(SentryEvent(throwable: error), Hint());
 
-  test('drops requests that failed for lack of network', () {
+  test('drops API requests that failed for lack of network', () {
     expect(
-      send(
-        http.ClientException(
-          "Failed host lookup: 'api'",
-          Uri.parse('https://api/ranking'),
-        ),
-      ),
+      fromApi(http.ClientException("Failed host lookup: 'api'", request.url)),
       isNull,
     );
-    expect(send(const SocketException('Network is unreachable')), isNull);
-    expect(send(TimeoutException('20 s')), isNull);
+    expect(fromApi(const SocketException('Network is unreachable')), isNull);
+    expect(fromApi(TimeoutException('20 s')), isNull);
   });
 
-  test('drops an event whose exceptions are all of the network', () {
-    final event = SentryEvent(
-      exceptions: [
-        SentryException(type: 'OSError', value: 'nodename nor servname'),
-        SentryException(type: 'ClientException', value: 'Failed host lookup'),
-      ],
-    );
+  test('keeps a TLS failure of the API', () {
+    expect(fromApi(const HandshakeException('certificate expired')), isNotNull);
+  });
 
-    expect(dropNetworkFailures(event, Hint()), isNull);
+  test('keeps the same errors when they do not come from a request', () {
+    expect(elsewhere(TimeoutException('20 s')), isNotNull);
+    expect(elsewhere(const OSError('nodename nor servname', 8)), isNotNull);
   });
 
   test('keeps the errors of the app', () {
-    final error = StateError('Cannot emit new states after calling close');
-
-    expect(send(error), isNotNull);
-    expect(send(const FormatException('bad JSON')), isNotNull);
+    expect(elsewhere(StateError('Cannot emit after close')), isNotNull);
+    expect(fromApi(const FormatException('bad JSON')), isNotNull);
   });
 }

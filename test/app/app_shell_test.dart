@@ -198,6 +198,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byTooltip('Apagar el ambiente de fondo'), findsOneWidget);
 
+    // A quick double tap opens Ajustes once.
+    await tester.tap(find.byTooltip('Ajustes'));
     await tester.tap(find.byTooltip('Ajustes'));
     await tester.pumpAndSettle();
     expect(find.text('Sonidos de la mesa'), findsOneWidget);

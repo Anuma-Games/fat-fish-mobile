@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fat_fish_mobile/core/navigation/app_routes.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/pixel_icon.dart';
 import 'package:fat_fish_mobile/core/theme/tokens.dart';
@@ -13,6 +15,20 @@ class TopBarActions extends StatelessWidget {
 
   /// False on Ajustes, where the gear would open the same screen.
   final bool settings;
+
+  /// True while Ajustes is open, from the tap until it closes.
+  static bool _settingsOpen = false;
+
+  /// A quick double tap opens Ajustes once: the second tap finds it already open.
+  static Future<void> _openSettings(BuildContext context) async {
+    if (_settingsOpen) return;
+    _settingsOpen = true;
+    try {
+      await context.push<void>(AppRoutes.ajustes);
+    } finally {
+      _settingsOpen = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +55,7 @@ class TopBarActions extends StatelessWidget {
         if (settings)
           IconButton(
             tooltip: 'Ajustes',
-            onPressed: () => context.push(AppRoutes.ajustes),
+            onPressed: () => unawaited(_openSettings(context)),
             icon: const PixelIcon(
               PixelIcons.gear,
               color: FatFishColors.cream100,

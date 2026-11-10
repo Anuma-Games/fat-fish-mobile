@@ -48,6 +48,21 @@ void main() {
     await next.close();
   });
 
+  test('a change made while the saved settings load is kept', () async {
+    final saved = build();
+    await saved.setVolume(2);
+    await saved.close();
+
+    final cubit = build();
+    final loading = cubit.load();
+    // The player taps the speaker before the saved settings arrive.
+    await cubit.toggleAmbience();
+    await loading;
+
+    expect(cubit.state.ambienceOn, isTrue);
+    await cubit.close();
+  });
+
   test('the volume stays between 0 and 10', () async {
     final cubit = build();
 

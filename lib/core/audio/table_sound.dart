@@ -97,11 +97,16 @@ class AudioTableSound implements TableSound {
   bool _ambienceOn = false;
   bool _effectsOn = false;
   bool _paused = false;
+  bool _interrupted = false;
   double _volume = 0.6;
+  StreamSubscription<AudioInterruptionEvent>? _interruptions;
+
+  /// In the background, or during a call: nothing plays.
+  bool get _held => _paused || _interrupted;
 
   /// Each sound plays only while it is on and the app is in the foreground.
-  bool get _ambienceAudible => _ambienceOn && !_paused;
-  bool get _effectsAudible => _effectsOn && !_paused && _loaded;
+  bool get _ambienceAudible => _ambienceOn && !_held;
+  bool get _effectsAudible => _effectsOn && !_held && _loaded;
 
   @override
   Future<void> configure({
@@ -128,6 +133,27 @@ class AudioTableSound implements TableSound {
   @override
   Future<void> pause() async {
     _paused = true;
+    _hold();
+  }
+
+  @override
+  Future<void> resume() async {
+    _paused = false;
+    _release();
+  }
+
+  /// A call or another app took the audio: silence until it gives it back.
+  void _interrupt({required bool begin}) {
+    _interrupted = begin;
+    if (begin) {
+      _hold();
+    } else {
+      unawaited(_safeAsync(_soloud.startAudioDevice));
+      _release();
+    }
+  }
+
+  void _hold() {
     stopRoll();
     _safe(() {
       final handle = _ambience;
@@ -135,9 +161,8 @@ class AudioTableSound implements TableSound {
     });
   }
 
-  @override
-  Future<void> resume() async {
-    _paused = false;
+  void _release() {
+    if (_held || !_loaded) return;
     _safe(() {
       final handle = _ambience;
       if (handle != null && _soloud.getIsValidVoiceHandle(handle)) {
@@ -195,11 +220,16 @@ class AudioTableSound implements TableSound {
 
   @override
   Future<void> dispose() async {
+    await _interruptions?.cancel();
     if (_soloud.isInitialized) _safe(_soloud.deinit);
   }
 
-  /// Loads the files the first time a sound turns on.
-  Future<void> _prepare() => _loading ??= _load();
+  /// Loads the files the first time a sound turns on. A failed load is tried again
+  /// the next time, instead of leaving the app silent until it restarts.
+  Future<void> _prepare() => _loading ??= _load().catchError((Object error) {
+    _loading = null;
+    throw error;
+  });
 
   Future<void> _load() async {
     // Ambient: mixes with other apps and keeps quiet with the silent switch.
@@ -213,6 +243,9 @@ class AudioTableSound implements TableSound {
         ),
         androidWillPauseWhenDucked: true,
       ),
+    );
+    _interruptions ??= session.interruptionEventStream.listen(
+      (event) => _interrupt(begin: event.begin),
     );
     if (!_soloud.isInitialized) await _soloud.init();
 

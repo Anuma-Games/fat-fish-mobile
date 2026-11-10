@@ -38,33 +38,45 @@ class RouletteWheel extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const CustomPaint(size: Size.square(size), painter: _BowlPainter()),
+          // The bowl and the head are painted once and kept in their own layers: each
+          // frame only turns the head and moves the ball.
+          const RepaintBoundary(
+            child: CustomPaint(
+              size: Size.square(size),
+              painter: _BowlPainter(),
+            ),
+          ),
           Transform.rotate(
             angle: head * 2 * math.pi,
-            child: const SizedBox.square(
-              dimension: headSize,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CustomPaint(
-                    size: Size.square(headSize),
-                    painter: _HeadPainter(),
-                  ),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: FatFishColors.gold400,
-                          spreadRadius: 3,
+            child: const RepaintBoundary(
+              child: SizedBox.square(
+                dimension: headSize,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CustomPaint(
+                      size: Size.square(headSize),
+                      painter: _HeadPainter(),
+                    ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: FatFishColors.gold400,
+                            spreadRadius: 3,
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: SizedBox.square(
+                          dimension: 88,
+                          child: GameIcon(),
                         ),
-                      ],
+                      ),
                     ),
-                    child: ClipOval(
-                      child: SizedBox.square(dimension: 88, child: GameIcon()),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -140,6 +152,23 @@ class _BowlPainter extends CustomPainter {
 class _HeadPainter extends CustomPainter {
   const _HeadPainter();
 
+  /// The 37 numbers, laid out once for the life of the app.
+  static final _numbers = [
+    for (final number in Roulette.order)
+      TextPainter(
+        text: TextSpan(
+          text: '$number',
+          style: const TextStyle(
+            fontFamily: FatFishFonts.display,
+            fontSize: 14,
+            height: 1,
+            color: FatFishColors.cream100,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout(),
+  ];
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
@@ -160,18 +189,7 @@ class _HeadPainter extends CustomPainter {
           ..isAntiAlias = true,
       );
 
-      final text = TextPainter(
-        text: TextSpan(
-          text: '$number',
-          style: const TextStyle(
-            fontFamily: FatFishFonts.display,
-            fontSize: 14,
-            height: 1,
-            color: FatFishColors.cream100,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
+      final text = _numbers[i];
       canvas
         ..save()
         ..translate(center.dx, center.dy)

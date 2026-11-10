@@ -17,9 +17,13 @@ abstract final class Croupier {
   /// Index of the greeting.
   static const greeting = 0;
 
-  /// Index of a random line other than [current], so he never repeats himself.
+  /// Index of a random line after a spin: never the greeting, and never [current], so
+  /// he does not repeat himself.
   static int next(math.Random random, int current) {
-    final index = random.nextInt(lines.length - 1);
-    return index >= current ? index + 1 : index;
+    final choices = [
+      for (var i = 0; i < lines.length; i++)
+        if (i != greeting && i != current) i,
+    ];
+    return choices[random.nextInt(choices.length)];
   }
 }

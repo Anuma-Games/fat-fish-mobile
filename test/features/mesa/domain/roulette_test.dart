@@ -63,12 +63,13 @@ void main() {
     expect(clicks.reduce((a, b) => a + b), 2);
   });
 
-  test('the croupier never says the same line twice in a row', () {
+  test('after a spin the croupier never greets nor repeats himself', () {
     final random = math.Random(3);
     var line = Croupier.greeting;
     for (var i = 0; i < 200; i++) {
       final next = Croupier.next(random, line);
       expect(next, isNot(line));
+      expect(next, isNot(Croupier.greeting));
       expect(next, inInclusiveRange(0, Croupier.lines.length - 1));
       line = next;
     }

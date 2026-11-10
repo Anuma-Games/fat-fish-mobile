@@ -31,11 +31,14 @@ void main() {
     await db.close();
   });
 
-  Future<void> pumpAjustes(WidgetTester tester) async {
+  Future<void> pumpAjustes(
+    WidgetTester tester, {
+    Future<bool> Function(Uri)? call,
+  }) async {
     await tester.pumpWidget(
       BlocProvider.value(
         value: cubit,
-        child: const MaterialApp(home: AjustesPage()),
+        child: MaterialApp(home: AjustesPage(call: call ?? (_) async => true)),
       ),
     );
     await tester.pumpAndSettle();
@@ -95,5 +98,18 @@ void main() {
 
     expect(find.text('Línea de la Vida: 800 911 2000'), findsOneWidget);
     expect(AjustesPage.helpLine.toString(), 'tel:8009112000');
+  });
+
+  testWidgets('a device that cannot call shows the number', (tester) async {
+    // A tablet has no phone to open.
+    await pumpAjustes(tester, call: (_) async => false);
+
+    await tester.tap(find.text('Línea de la Vida: 800 911 2000'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Llama a la Línea de la Vida: 800 911 2000'),
+      findsOneWidget,
+    );
   });
 }

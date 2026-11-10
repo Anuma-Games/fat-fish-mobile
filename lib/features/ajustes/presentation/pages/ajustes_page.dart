@@ -12,7 +12,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// Sound, vibration and what the app is, with the help line for gambling problems.
 class AjustesPage extends StatelessWidget {
-  const AjustesPage({super.key});
+  const AjustesPage({super.key, this.call = launchUrl});
+
+  /// Opens the phone at a number; tests pass one that cannot.
+  final Future<bool> Function(Uri) call;
 
   /// Línea de la Vida, the national help line of Mexico (free, 24 hours).
   static final helpLine = Uri(scheme: 'tel', path: '8009112000');
@@ -97,7 +100,7 @@ class AjustesPage extends StatelessWidget {
             ),
             const SizedBox(height: FatFishSpacing.s6),
             const _SectionTitle('ACERCA DE'),
-            const _About(),
+            _About(call: call),
           ],
         ),
       ),
@@ -190,7 +193,26 @@ class _SwitchRow extends StatelessWidget {
 }
 
 class _About extends StatelessWidget {
-  const _About();
+  const _About({required this.call});
+
+  final Future<bool> Function(Uri) call;
+
+  /// Opens the phone; a device that cannot call (a tablet) shows the number instead.
+  Future<void> _call(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    var opened = false;
+    try {
+      opened = await call(AjustesPage.helpLine);
+    } on Object {
+      opened = false;
+    }
+    if (opened) return;
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('Llama a la Línea de la Vida: 800 911 2000'),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +258,7 @@ class _About extends StatelessWidget {
           ),
         ),
         TextButton.icon(
-          onPressed: () => launchUrl(AjustesPage.helpLine),
+          onPressed: () => _call(context),
           style: TextButton.styleFrom(
             alignment: Alignment.centerLeft,
             foregroundColor: FatFishColors.gold400,

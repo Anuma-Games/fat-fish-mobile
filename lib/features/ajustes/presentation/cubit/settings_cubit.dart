@@ -12,7 +12,13 @@ class SettingsCubit extends Cubit<Settings> {
   final GetSettings _getSettings;
   final SaveSettings _saveSettings;
 
-  Future<void> load() async => emit(await _getSettings());
+  /// A change the player made while the saved settings load wins over them.
+  Future<void> load() async {
+    final saved = await _getSettings();
+    if (!_changed && !isClosed) emit(saved);
+  }
+
+  bool _changed = false;
 
   Future<void> toggleAmbience() =>
       _change(state.copyWith(ambienceOn: !state.ambienceOn));
@@ -29,6 +35,7 @@ class SettingsCubit extends Cubit<Settings> {
   /// The screen changes at once; the device saves behind.
   Future<void> _change(Settings settings) async {
     if (settings == state) return;
+    _changed = true;
     emit(settings);
     await _saveSettings(settings);
   }
