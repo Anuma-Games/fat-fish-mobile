@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fat_fish_mobile/app/app_shell.dart';
 import 'package:fat_fish_mobile/app/fade_branch_container.dart';
 import 'package:fat_fish_mobile/core/navigation/app_routes.dart';
+import 'package:fat_fish_mobile/features/ajustes/presentation/pages/ajustes_page.dart';
 import 'package:fat_fish_mobile/features/bienvenida/presentation/pages/bienvenida_page.dart';
 import 'package:fat_fish_mobile/features/expediente/presentation/expediente_scope.dart';
 import 'package:fat_fish_mobile/features/expediente/presentation/pages/expediente_page.dart';
@@ -41,6 +42,11 @@ GoRouter buildRouter(MyPlayerCubit myPlayer, {required Listenable refresh}) {
         name: 'bienvenida',
         path: AppRoutes.bienvenida,
         builder: (context, state) => const BienvenidaPage(),
+      ),
+      GoRoute(
+        name: 'ajustes',
+        path: AppRoutes.ajustes,
+        builder: (context, state) => const AjustesPage(),
       ),
       GoRoute(
         name: 'jugador',

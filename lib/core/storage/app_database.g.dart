@@ -878,6 +878,373 @@ class CachedResponsesCompanion extends UpdateCompanion<CachedResponseRow> {
   }
 }
 
+class $AppSettingsTable extends AppSettings
+    with TableInfo<$AppSettingsTable, AppSettingsRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AppSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ambienceOnMeta = const VerificationMeta(
+    'ambienceOn',
+  );
+  @override
+  late final GeneratedColumn<bool> ambienceOn = GeneratedColumn<bool>(
+    'ambience_on',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("ambience_on" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _tableSoundsOnMeta = const VerificationMeta(
+    'tableSoundsOn',
+  );
+  @override
+  late final GeneratedColumn<bool> tableSoundsOn = GeneratedColumn<bool>(
+    'table_sounds_on',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("table_sounds_on" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _volumeMeta = const VerificationMeta('volume');
+  @override
+  late final GeneratedColumn<int> volume = GeneratedColumn<int>(
+    'volume',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vibrationMeta = const VerificationMeta(
+    'vibration',
+  );
+  @override
+  late final GeneratedColumn<bool> vibration = GeneratedColumn<bool>(
+    'vibration',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("vibration" IN (0, 1))',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    ambienceOn,
+    tableSoundsOn,
+    volume,
+    vibration,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'app_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AppSettingsRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('ambience_on')) {
+      context.handle(
+        _ambienceOnMeta,
+        ambienceOn.isAcceptableOrUnknown(data['ambience_on']!, _ambienceOnMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ambienceOnMeta);
+    }
+    if (data.containsKey('table_sounds_on')) {
+      context.handle(
+        _tableSoundsOnMeta,
+        tableSoundsOn.isAcceptableOrUnknown(
+          data['table_sounds_on']!,
+          _tableSoundsOnMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_tableSoundsOnMeta);
+    }
+    if (data.containsKey('volume')) {
+      context.handle(
+        _volumeMeta,
+        volume.isAcceptableOrUnknown(data['volume']!, _volumeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_volumeMeta);
+    }
+    if (data.containsKey('vibration')) {
+      context.handle(
+        _vibrationMeta,
+        vibration.isAcceptableOrUnknown(data['vibration']!, _vibrationMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vibrationMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AppSettingsRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppSettingsRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      ambienceOn: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}ambience_on'],
+      )!,
+      tableSoundsOn: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}table_sounds_on'],
+      )!,
+      volume: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}volume'],
+      )!,
+      vibration: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}vibration'],
+      )!,
+    );
+  }
+
+  @override
+  $AppSettingsTable createAlias(String alias) {
+    return $AppSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
+  final int id;
+
+  /// Background ambience and table sounds. Off until the player turns them on.
+  final bool ambienceOn;
+  final bool tableSoundsOn;
+
+  /// From 0 to 10.
+  final int volume;
+  final bool vibration;
+  const AppSettingsRow({
+    required this.id,
+    required this.ambienceOn,
+    required this.tableSoundsOn,
+    required this.volume,
+    required this.vibration,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['ambience_on'] = Variable<bool>(ambienceOn);
+    map['table_sounds_on'] = Variable<bool>(tableSoundsOn);
+    map['volume'] = Variable<int>(volume);
+    map['vibration'] = Variable<bool>(vibration);
+    return map;
+  }
+
+  AppSettingsCompanion toCompanion(bool nullToAbsent) {
+    return AppSettingsCompanion(
+      id: Value(id),
+      ambienceOn: Value(ambienceOn),
+      tableSoundsOn: Value(tableSoundsOn),
+      volume: Value(volume),
+      vibration: Value(vibration),
+    );
+  }
+
+  factory AppSettingsRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppSettingsRow(
+      id: serializer.fromJson<int>(json['id']),
+      ambienceOn: serializer.fromJson<bool>(json['ambienceOn']),
+      tableSoundsOn: serializer.fromJson<bool>(json['tableSoundsOn']),
+      volume: serializer.fromJson<int>(json['volume']),
+      vibration: serializer.fromJson<bool>(json['vibration']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'ambienceOn': serializer.toJson<bool>(ambienceOn),
+      'tableSoundsOn': serializer.toJson<bool>(tableSoundsOn),
+      'volume': serializer.toJson<int>(volume),
+      'vibration': serializer.toJson<bool>(vibration),
+    };
+  }
+
+  AppSettingsRow copyWith({
+    int? id,
+    bool? ambienceOn,
+    bool? tableSoundsOn,
+    int? volume,
+    bool? vibration,
+  }) => AppSettingsRow(
+    id: id ?? this.id,
+    ambienceOn: ambienceOn ?? this.ambienceOn,
+    tableSoundsOn: tableSoundsOn ?? this.tableSoundsOn,
+    volume: volume ?? this.volume,
+    vibration: vibration ?? this.vibration,
+  );
+  AppSettingsRow copyWithCompanion(AppSettingsCompanion data) {
+    return AppSettingsRow(
+      id: data.id.present ? data.id.value : this.id,
+      ambienceOn: data.ambienceOn.present
+          ? data.ambienceOn.value
+          : this.ambienceOn,
+      tableSoundsOn: data.tableSoundsOn.present
+          ? data.tableSoundsOn.value
+          : this.tableSoundsOn,
+      volume: data.volume.present ? data.volume.value : this.volume,
+      vibration: data.vibration.present ? data.vibration.value : this.vibration,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSettingsRow(')
+          ..write('id: $id, ')
+          ..write('ambienceOn: $ambienceOn, ')
+          ..write('tableSoundsOn: $tableSoundsOn, ')
+          ..write('volume: $volume, ')
+          ..write('vibration: $vibration')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, ambienceOn, tableSoundsOn, volume, vibration);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppSettingsRow &&
+          other.id == this.id &&
+          other.ambienceOn == this.ambienceOn &&
+          other.tableSoundsOn == this.tableSoundsOn &&
+          other.volume == this.volume &&
+          other.vibration == this.vibration);
+}
+
+class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
+  final Value<int> id;
+  final Value<bool> ambienceOn;
+  final Value<bool> tableSoundsOn;
+  final Value<int> volume;
+  final Value<bool> vibration;
+  const AppSettingsCompanion({
+    this.id = const Value.absent(),
+    this.ambienceOn = const Value.absent(),
+    this.tableSoundsOn = const Value.absent(),
+    this.volume = const Value.absent(),
+    this.vibration = const Value.absent(),
+  });
+  AppSettingsCompanion.insert({
+    this.id = const Value.absent(),
+    required bool ambienceOn,
+    required bool tableSoundsOn,
+    required int volume,
+    required bool vibration,
+  }) : ambienceOn = Value(ambienceOn),
+       tableSoundsOn = Value(tableSoundsOn),
+       volume = Value(volume),
+       vibration = Value(vibration);
+  static Insertable<AppSettingsRow> custom({
+    Expression<int>? id,
+    Expression<bool>? ambienceOn,
+    Expression<bool>? tableSoundsOn,
+    Expression<int>? volume,
+    Expression<bool>? vibration,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (ambienceOn != null) 'ambience_on': ambienceOn,
+      if (tableSoundsOn != null) 'table_sounds_on': tableSoundsOn,
+      if (volume != null) 'volume': volume,
+      if (vibration != null) 'vibration': vibration,
+    });
+  }
+
+  AppSettingsCompanion copyWith({
+    Value<int>? id,
+    Value<bool>? ambienceOn,
+    Value<bool>? tableSoundsOn,
+    Value<int>? volume,
+    Value<bool>? vibration,
+  }) {
+    return AppSettingsCompanion(
+      id: id ?? this.id,
+      ambienceOn: ambienceOn ?? this.ambienceOn,
+      tableSoundsOn: tableSoundsOn ?? this.tableSoundsOn,
+      volume: volume ?? this.volume,
+      vibration: vibration ?? this.vibration,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (ambienceOn.present) {
+      map['ambience_on'] = Variable<bool>(ambienceOn.value);
+    }
+    if (tableSoundsOn.present) {
+      map['table_sounds_on'] = Variable<bool>(tableSoundsOn.value);
+    }
+    if (volume.present) {
+      map['volume'] = Variable<int>(volume.value);
+    }
+    if (vibration.present) {
+      map['vibration'] = Variable<bool>(vibration.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('ambienceOn: $ambienceOn, ')
+          ..write('tableSoundsOn: $tableSoundsOn, ')
+          ..write('volume: $volume, ')
+          ..write('vibration: $vibration')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -886,6 +1253,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CachedResponsesTable cachedResponses = $CachedResponsesTable(
     this,
   );
+  late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -894,6 +1262,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     myPlayers,
     recentPlayers,
     cachedResponses,
+    appSettings,
   ];
 }
 
@@ -1439,6 +1808,213 @@ typedef $$CachedResponsesTableProcessedTableManager =
       CachedResponseRow,
       PrefetchHooks Function()
     >;
+typedef $$AppSettingsTableCreateCompanionBuilder =
+    AppSettingsCompanion Function({
+      Value<int> id,
+      required bool ambienceOn,
+      required bool tableSoundsOn,
+      required int volume,
+      required bool vibration,
+    });
+typedef $$AppSettingsTableUpdateCompanionBuilder =
+    AppSettingsCompanion Function({
+      Value<int> id,
+      Value<bool> ambienceOn,
+      Value<bool> tableSoundsOn,
+      Value<int> volume,
+      Value<bool> vibration,
+    });
+
+class $$AppSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get ambienceOn => $composableBuilder(
+    column: $table.ambienceOn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get tableSoundsOn => $composableBuilder(
+    column: $table.tableSoundsOn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get volume => $composableBuilder(
+    column: $table.volume,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get vibration => $composableBuilder(
+    column: $table.vibration,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AppSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get ambienceOn => $composableBuilder(
+    column: $table.ambienceOn,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get tableSoundsOn => $composableBuilder(
+    column: $table.tableSoundsOn,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get volume => $composableBuilder(
+    column: $table.volume,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get vibration => $composableBuilder(
+    column: $table.vibration,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AppSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<bool> get ambienceOn => $composableBuilder(
+    column: $table.ambienceOn,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get tableSoundsOn => $composableBuilder(
+    column: $table.tableSoundsOn,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get volume =>
+      $composableBuilder(column: $table.volume, builder: (column) => column);
+
+  GeneratedColumn<bool> get vibration =>
+      $composableBuilder(column: $table.vibration, builder: (column) => column);
+}
+
+class $$AppSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AppSettingsTable,
+          AppSettingsRow,
+          $$AppSettingsTableFilterComposer,
+          $$AppSettingsTableOrderingComposer,
+          $$AppSettingsTableAnnotationComposer,
+          $$AppSettingsTableCreateCompanionBuilder,
+          $$AppSettingsTableUpdateCompanionBuilder,
+          (
+            AppSettingsRow,
+            BaseReferences<_$AppDatabase, $AppSettingsTable, AppSettingsRow>,
+          ),
+          AppSettingsRow,
+          PrefetchHooks Function()
+        > {
+  $$AppSettingsTableTableManager(_$AppDatabase db, $AppSettingsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AppSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AppSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AppSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<bool> ambienceOn = const Value.absent(),
+                Value<bool> tableSoundsOn = const Value.absent(),
+                Value<int> volume = const Value.absent(),
+                Value<bool> vibration = const Value.absent(),
+              }) => AppSettingsCompanion(
+                id: id,
+                ambienceOn: ambienceOn,
+                tableSoundsOn: tableSoundsOn,
+                volume: volume,
+                vibration: vibration,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required bool ambienceOn,
+                required bool tableSoundsOn,
+                required int volume,
+                required bool vibration,
+              }) => AppSettingsCompanion.insert(
+                id: id,
+                ambienceOn: ambienceOn,
+                tableSoundsOn: tableSoundsOn,
+                volume: volume,
+                vibration: vibration,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AppSettingsTable, AppSettingsRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $AppSettingsTable,
+                    AppSettingsRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AppSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AppSettingsTable,
+      AppSettingsRow,
+      $$AppSettingsTableFilterComposer,
+      $$AppSettingsTableOrderingComposer,
+      $$AppSettingsTableAnnotationComposer,
+      $$AppSettingsTableCreateCompanionBuilder,
+      $$AppSettingsTableUpdateCompanionBuilder,
+      (
+        AppSettingsRow,
+        BaseReferences<_$AppDatabase, $AppSettingsTable, AppSettingsRow>,
+      ),
+      AppSettingsRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1449,4 +2025,6 @@ class $AppDatabaseManager {
       $$RecentPlayersTableTableManager(_db, _db.recentPlayers);
   $$CachedResponsesTableTableManager get cachedResponses =>
       $$CachedResponsesTableTableManager(_db, _db.cachedResponses);
+  $$AppSettingsTableTableManager get appSettings =>
+      $$AppSettingsTableTableManager(_db, _db.appSettings);
 }

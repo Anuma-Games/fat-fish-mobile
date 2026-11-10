@@ -17,7 +17,7 @@ import 'package:fat_fish_mobile/features/jugador/presentation/widgets/my_player_
 import 'package:fat_fish_mobile/features/jugador/presentation/widgets/player_list_panel.dart';
 import 'package:fat_fish_mobile/features/jugador/presentation/widgets/player_row.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:fat_fish_mobile/features/ajustes/presentation/haptics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -80,7 +80,7 @@ class _JugadorViewState extends State<_JugadorView> {
   Future<void> _choose(PlayerSummary player) async {
     if (_choosing) return;
     _choosing = true;
-    HapticFeedback.selectionClick();
+    Haptics.selection(context);
     FocusScope.of(context).unfocus();
     final recents = context.read<RecentPlayersCubit>();
     final router = GoRouter.maybeOf(context);

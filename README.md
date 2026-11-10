@@ -40,7 +40,7 @@ público**. La retroalimentación y la encuesta se quedan en la PWA.
 | Expediente e historial                             | ✅ Construido |
 | Ranking mundial                                    | ✅ Construido |
 | Bienvenida y barra de navegación con gesto         | ✅ Construido |
-| La mesa, ajustes y sonido                          | ⏳ Pendiente  |
+| La mesa, ajustes y sonido                          | ✅ Construido |
 | Consulta sin conexión                              | ✅ Construido |
 | APK publicado                                      | ⏳ Pendiente  |
 
@@ -87,7 +87,7 @@ lib/
 ├── main.dart                 # raíz de composición: crea los servicios y los entrega con RepositoryProvider
 ├── app/                      # FatFishApp, tema, rutas y barra de navegación
 ├── core/                     # config, ApiClient, AppDatabase, tokens de diseño y widgets comunes
-└── features/                 # bienvenida, expediente, jugador, mesa y ranking
+└── features/                 # ajustes, bienvenida, expediente, jugador, mesa y ranking
     └── <feature>/
         ├── data/             # DTOs, fuentes de datos (API y caché) e implementación del repositorio
         ├── domain/           # entidades, repositorio abstracto y casos de uso
@@ -178,6 +178,16 @@ medidas.
 `fat-fish-acentos` de la PWA: en la original parecen minúsculas. Se genera con
 `python -I tool/fuente_pixel.py assets/fonts/PressStart2P-Regular.ttf` (requiere fontTools) y lleva otro nombre porque
 "Press Start 2P" es un nombre reservado de su licencia.
+
+**La mesa** tiene una ruleta para girar mientras se espera: no cambia el expediente. Cuenta los giros y el tiempo de
+la visita, muestra los últimos números y el crupier dice una frase tras cada giro. **Ajustes** se abre con el engrane
+de la barra superior y guarda en el teléfono el ambiente de fondo, los sonidos de la mesa, el volumen (10 niveles) y la
+vibración; la bocina de la barra enciende y apaga el ambiente. El sonido empieza apagado, se pausa cuando la app pasa a segundo plano y, con "reducir
+movimiento", la ruleta da el resultado sin animación.
+
+Los sonidos de la mesa son los de `sonido-mesa.ts` de la PWA (ambiente del cuarto, zumbido de la lámpara, clics de la
+bola y su caída), grabados como WAV en `assets/sonidos/` con `python3 -I tool/sonidos_mesa.py`. Los reproduce SoLoud (`flutter_soloud`),
+un motor de audio para juegos: el ambiente se repite sin cortes y los clics suenan al instante.
 
 El ícono de la app sale de `assets/icon/` y se regenera con `dart run flutter_launcher_icons`.
 
