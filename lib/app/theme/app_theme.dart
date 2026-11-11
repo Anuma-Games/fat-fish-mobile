@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:fat_fish_mobile/core/presentation/widgets/dashed_border.dart';
 import 'package:fat_fish_mobile/core/theme/tokens.dart';
 
 /// Material theme with the PWA style guide applied to each component,
@@ -14,8 +15,8 @@ ThemeData buildFatFishTheme() {
     onSurface: FatFishColors.cream100,
     onSurfaceVariant: FatFishColors.fog400,
     surfaceContainer: FatFishColors.bg700,
-    error: FatFishColors.ruby300,
-    onError: FatFishColors.bg900,
+    error: FatFishColors.red,
+    onError: FatFishColors.cream100,
     outline: FatFishColors.line,
     outlineVariant: FatFishColors.line,
   );
@@ -31,19 +32,18 @@ ThemeData buildFatFishTheme() {
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: FatFishColors.gold400,
     ),
+    // Dark strip without borders; content scrolls under it.
     appBarTheme: AppBarTheme(
-      backgroundColor: FatFishColors.felt800,
+      backgroundColor: FatFishColors.bg900.withValues(alpha: 0.94),
       foregroundColor: FatFishColors.cream100,
       elevation: 0,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
-      // Left aligned on every platform, like the PWA top bar (iOS centers it by default).
+      toolbarHeight: 64,
+      // Left aligned on every platform (iOS centers it by default).
       centerTitle: false,
       titleSpacing: FatFishSpacing.s4,
       titleTextStyle: textTheme.titleLarge,
-      shape: const Border(
-        bottom: BorderSide(color: FatFishColors.gold600, width: 2),
-      ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: FatFishColors.felt800,
@@ -130,13 +130,19 @@ ThemeData buildFatFishTheme() {
         borderSide: BorderSide(color: FatFishColors.gold400, width: 2),
       ),
     ),
+    // Floats 16 px from the sides, like the cards, instead of touching both edges.
     snackBarTheme: const SnackBarThemeData(
-      backgroundColor: FatFishColors.bg700,
-      contentTextStyle: TextStyle(color: FatFishColors.cream100),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(FatFishRadius.card),
-        side: BorderSide(color: FatFishColors.line),
+      behavior: SnackBarBehavior.floating,
+      insetPadding: EdgeInsets.fromLTRB(
+        FatFishSpacing.s4,
+        0,
+        FatFishSpacing.s4,
+        FatFishSpacing.s4,
       ),
+      // Same dashed gold border as the offline notice: both are warnings.
+      backgroundColor: FatFishColors.bg800,
+      contentTextStyle: TextStyle(color: FatFishColors.cream100),
+      shape: DashedBorder(),
     ),
   );
 }

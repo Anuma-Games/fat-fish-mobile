@@ -101,4 +101,11 @@ void main() {
 
     expect(client.getJson('/x'), throwsA(isA<NetworkException>()));
   });
+
+  test('turns a 200 that is not JSON into UnexpectedResponseException', () {
+    expect(
+      clientReturning(200, body: '<html>proxy</html>').getJson('/x'),
+      throwsA(isA<UnexpectedResponseException>()),
+    );
+  });
 }

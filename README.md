@@ -36,10 +36,12 @@ público**. La retroalimentación y la encuesta se quedan en la PWA.
 | Función                                            | Estado        |
 |----------------------------------------------------|---------------|
 | Base: estructura, configuración, navegación y tema | ✅ Construido |
-| Mi jugador y búsqueda por alias o ID               | ⏳ Pendiente  |
-| Expediente e historial                             | ⏳ Pendiente  |
-| Ranking mundial                                    | ⏳ Pendiente  |
-| Consulta sin conexión                              | ⏳ Pendiente  |
+| Mi jugador y búsqueda por alias o ID               | ✅ Construido |
+| Expediente e historial                             | ✅ Construido |
+| Ranking mundial                                    | ✅ Construido |
+| Bienvenida y barra de navegación con gesto         | ✅ Construido |
+| La mesa, ajustes y sonido                          | ✅ Construido |
+| Consulta sin conexión                              | ✅ Construido |
 | APK publicado                                      | ⏳ Pendiente  |
 
 ## 3. Cómo ejecutarla
@@ -57,10 +59,13 @@ Requiere Flutter 3.47.7 (canal stable); para el APK, Android SDK y Java 17.
 **Configuración.** La URL y la llave de la API se leen al compilar, así que cambian sin tocar el código. Copia
 `config/example.json` a `config/local.json` (ignorado por Git):
 
-| Clave          | Valor                                                              | Por defecto                                                             |
-|----------------|--------------------------------------------------------------------|-------------------------------------------------------------------------|
-| `API_BASE_URL` | Dirección de la API, sin `/` final                                 | `http://10.0.2.2:8080`: la API local vista desde el emulador de Android |
-| `API_KEY`      | Llave de la cabecera `X-Api-Key`; se pide al responsable de la API | Vacía (la API local no la pide)                                         |
+| Clave                | Valor                                                                      | Por defecto                                                             |
+|----------------------|----------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| `API_BASE_URL`       | Dirección de la API, sin `/` final                                         | `http://10.0.2.2:8080`: la API local vista desde el emulador de Android |
+| `API_KEY`            | Llave de la cabecera `X-Api-Key`; se pide al responsable de la API         | Vacía (la API local no la pide)                                         |
+| `SENTRY_DSN`         | DSN del proyecto `fat-fish-mobile` en Sentry (errores y rendimiento)       | Vacío: Sentry desactivado (pruebas y CI)                                |
+| `SENTRY_ENVIRONMENT` | Ambiente que se muestra en Sentry (`development`, `staging`, `production`) | `development`                                                           |
+| `SENTRY_TEST_BUTTON` | `true` muestra un botón que lanza un error de prueba para verificar Sentry | `false`                                                                 |
 
 - El HTTP sin cifrar solo se permite en depuración. En un iPhone conviene usar la API en `https`.
 - La llave queda dentro del APK y se puede extraer, así que solo debe abrir endpoints de lectura pública.
@@ -71,7 +76,7 @@ Requiere Flutter 3.47.7 (canal stable); para el APK, Android SDK y Java 17.
 ```mermaid
 flowchart LR
     Juego[Juego en Unity] -->|partidas| API[(API y PostgreSQL)]
-    API -->|/api/pwa/...| App[App móvil]
+    API -->|/api/pwa/ . . .| App[App móvil]
     App <--> Drift[(Caché local<br/>SQLite)]
 ```
 
@@ -82,7 +87,7 @@ lib/
 ├── main.dart                 # raíz de composición: crea los servicios y los entrega con RepositoryProvider
 ├── app/                      # FatFishApp, tema, rutas y barra de navegación
 ├── core/                     # config, ApiClient, AppDatabase, tokens de diseño y widgets comunes
-└── features/                 # expediente, jugador y ranking
+└── features/                 # ajustes, bienvenida, expediente, jugador, mesa y ranking
     └── <feature>/
         ├── data/             # DTOs, fuentes de datos (API y caché) e implementación del repositorio
         ├── domain/           # entidades, repositorio abstracto y casos de uso
@@ -111,8 +116,8 @@ Página → Cubit → Caso de uso → Repositorio (domain) ← Implementación (
 |---------------------------------------------|--------------------------------------|---------------|
 | `GET /api/pwa/perfil?id=`                   | Datos del jugador y sus estadísticas | ✅ Disponible |
 | `GET /api/pwa/partidas?id=&pagina=&tamano=` | Historial paginado                   | ✅ Disponible |
-| `GET /api/pwa/jugadores?busqueda=`          | Búsqueda por alias o ID              | ⏳ Pendiente  |
-| `GET /api/pwa/ranking?pagina=&jugadorId=`   | Top 50 y la posición propia          | ⏳ Pendiente  |
+| `GET /api/pwa/jugadores?busqueda=`          | Búsqueda por alias o ID              | ✅ Disponible |
+| `GET /api/pwa/ranking?pagina=&jugadorId=`   | Top 50 y la posición propia          | ✅ Disponible |
 
 `ApiClient` envía `X-Api-Key` y convierte cada falla en una excepción que la pantalla muestra:
 
@@ -121,13 +126,19 @@ Página → Cubit → Caso de uso → Repositorio (domain) ← Implementación (
 | Sin red o sin respuesta | `NetworkException`            | Los últimos datos guardados               |
 | `404`                   | `NotFoundException`           | "No encontramos lo que buscabas"          |
 | Otro `4xx`              | `SomethingWentWrongException` | Error nuestro (llave o petición inválida) |
-| `3xx` o `5xx`           | `ServerException`             | "El servidor no pudo responder"           |
+| `3xx` o `5xx`           | `ServerException`             | "No pudimos cargar los datos"             |
+| `2xx` con otro formato  | `UnexpectedResponseException` | Error nuestro (contrato distinto)         |
 
 ## 6. Sin conexión
 
-La caché en SQLite ([Drift](https://drift.simonbinder.eu/)) es la única fuente de los datos en pantalla: la red solo la
-actualiza. Sin conexión se muestran los últimos datos con el aviso "Sin conexión" y su fecha. Cada feature agrega sus
-tablas a `lib/core/storage/app_database.dart`; un cambio de esquema sube `schemaVersion` con su migración.
+`CachedApi` guarda en SQLite ([Drift](https://drift.simonbinder.eu/)) la última respuesta del expediente, el historial
+y el ranking (tabla `cached_responses`, una fila por petición). Si la red falla (`NetworkException`), devuelve esa copia
+con su fecha y la pantalla muestra el aviso "Sin conexión": "Datos guardados el 3 de noviembre, 2026, a las 18:42.
+Pueden estar desactualizados." Un `404` o un error del servidor no usan la copia. Sin conexión, el historial muestra las
+partidas guardadas y "Ver más" vuelve cuando hay red. La búsqueda de jugadores siempre necesita conexión.
+
+Cada feature agrega sus tablas a `lib/core/storage/app_database.dart`; un cambio de esquema sube `schemaVersion` con su
+migración.
 
 ```mermaid
 stateDiagram-v2
@@ -141,19 +152,42 @@ stateDiagram-v2
 
 ## 7. Experiencia de usuario
 
-La app usa la guía de estilo de la PWA: fondo con el patrón de rombos, barras de paño con borde dorado e íconos pixel
-art de 12 × 12 (`PixelIcon`). Tiene tres pestañas: **Expediente**, **Ranking** y **Mi jugador**. Los valores están en
-`lib/core/theme/tokens.dart` con los mismos nombres que `tokens.css`, y `lib/app/theme/app_theme.dart` los aplica a los
-componentes de Material, así que las pantallas no escriben colores ni medidas.
+La app sigue el diseño de [Fat Fish - App móvil](https://claude.ai/artifact/PKb3b1jTvdyMvX6TVU9Sr8): fondo con el
+patrón de rombos, barra superior oscura e íconos pixel art de 12 × 12 (`PixelIcon`). Lo que el casino sabe del jugador
+va en una hoja de papel (`RuledPaper`, `PaperText`).
 
-| Uso                | Valor                                                                                                               |
-|--------------------|---------------------------------------------------------------------------------------------------------------------|
-| Fondo y tarjetas   | `#0B1416` y `#172A25`                                                                                               |
-| Paño (barras)      | `#0D3522` y `#105030`                                                                                               |
-| Dorado             | `#E8B850`                                                                                                           |
-| Victoria / derrota | `#6FD39A` / `#882020` (ficha) y `#F08A7E` (cifras)                                                                  |
-| Texto              | `#F2E8CC` y `#9AA8A2`                                                                                               |
-| Fuentes            | **Jersey 10** (títulos), **Press Start 2P** (etiquetas) y **Geist** (texto), en `assets/fonts/` con su licencia OFL |
+Sin jugador guardado la app abre la **Bienvenida**. Con jugador, abre el expediente. Abajo flota la barra con tres
+fichas, **Expediente**, **Mesa** y **Ranking**, que cambian al tocarlas o al deslizar el dedo sobre la barra. Las dos
+barras se
+ocultan al bajar y vuelven al subir. **Mi jugador** se abre desde "Cambiar" en el expediente. Los valores están en
+`lib/core/theme/tokens.dart`, y
+`lib/app/theme/app_theme.dart` los aplica a los componentes de Material, así que las pantallas no escriben colores ni
+medidas.
+
+| Uso              | Valor                                                                                                                                          |
+|------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| Fondo y tarjetas | `#0B1416` y `#172A25`                                                                                                                          |
+| Paño             | `#0D3522` y `#105030`                                                                                                                          |
+| Dorado           | `#E8B850`, para las acciones                                                                                                                   |
+| Rojo             | `#B3261E`, el único: pérdida, derrota y peligro; como texto solo sobre papel                                                                   |
+| Texto            | `#F2E8CC` y `#9AA8A2`                                                                                                                          |
+| Papel y tinta    | `#E6DCC3` y `#231E17`                                                                                                                          |
+| Fuentes          | **Jersey 10** (títulos), **Fat Fish Pixel** (etiquetas), **Geist** (texto) y **Courier Prime** (papel), en `assets/fonts/` con su licencia OFL |
+
+**Fat Fish Pixel** es Press Start 2P con las mayúsculas acentuadas (Á É Í Ó Ú Ñ Ü) a altura completa, como la fuente
+`fat-fish-acentos` de la PWA: en la original parecen minúsculas. Se genera con
+`python -I tool/fuente_pixel.py assets/fonts/PressStart2P-Regular.ttf` (requiere fontTools) y lleva otro nombre porque
+"Press Start 2P" es un nombre reservado de su licencia.
+
+**La mesa** tiene una ruleta para girar mientras se espera: no cambia el expediente. Cuenta los giros y el tiempo de
+la visita, muestra los últimos números y el crupier dice una frase tras cada giro. **Ajustes** se abre con el engrane
+de la barra superior y guarda en el teléfono el ambiente de fondo, los sonidos de la mesa, el volumen (10 niveles) y la
+vibración; la bocina de la barra enciende y apaga el ambiente. El sonido empieza apagado, se pausa cuando la app pasa a segundo plano y, con "reducir
+movimiento", la ruleta da el resultado sin animación.
+
+Los sonidos de la mesa son los de `sonido-mesa.ts` de la PWA (ambiente del cuarto, zumbido de la lámpara, clics de la
+bola y su caída), grabados como WAV en `assets/sonidos/` con `python3 -I tool/sonidos_mesa.py`. Los reproduce SoLoud (`flutter_soloud`),
+un motor de audio para juegos: el ambiente se repite sin cortes y los clics suenan al instante.
 
 El ícono de la app sale de `assets/icon/` y se regenera con `dart run flutter_launcher_icons`.
 

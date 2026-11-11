@@ -24,13 +24,19 @@ class NotFoundException extends ApiException {
 /// No connection, DNS failure or timeout.
 class NetworkException extends ApiException {
   const NetworkException()
-    : super('No hay conexión con el servidor. Revisa tu internet.');
+    : super('No pudimos conectarnos. Revisa tu internet e intenta de nuevo.');
+}
+
+/// A 2xx answer whose body is not the JSON we expect (a proxy page, a changed contract).
+class UnexpectedResponseException extends ApiException {
+  const UnexpectedResponseException()
+    : super('Algo salió mal de nuestro lado. Ya estamos en ello.');
 }
 
 /// Any other non-2xx answer from the API.
 class ServerException extends ApiException {
   const ServerException(this.statusCode)
-    : super('El servidor no pudo responder. Intenta más tarde.');
+    : super('No pudimos cargar los datos. Intenta más tarde.');
 
   final int statusCode;
 }

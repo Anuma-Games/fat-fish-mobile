@@ -6,3 +6,8 @@ analyzer:
     - android/**
     - ios/**
     - "**/*.g.dart"
+
+linter:
+  rules:
+    # Imports always as package:fat_fish_mobile/..., never relative.
+    - always_use_package_imports
