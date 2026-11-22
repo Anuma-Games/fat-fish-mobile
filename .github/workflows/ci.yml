@@ -81,14 +81,74 @@ jobs:
           cache: true
 
       - name: Compilar APK de depuración
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
         run: flutter build apk --debug
+
+      - name: Preparar firma y configuración de producción
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          PRODUCTION_CONFIG: ${{ secrets.MOBILE_PRODUCTION_CONFIG_JSON }}
+        run: |
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+
+          os.umask(0o077)
+          folder = Path(os.environ["RUNNER_TEMP"])
+
+          encoded = os.environ["KEYSTORE_BASE64"]
+          if not encoded:
+              raise SystemExit("Falta ANDROID_KEYSTORE_BASE64")
+
+          config = json.loads(os.environ["PRODUCTION_CONFIG"])
+          if not config.get("API_BASE_URL", "").startswith("https://"):
+              raise SystemExit("API_BASE_URL debe usar HTTPS de producción")
+          if config.get("SENTRY_ENVIRONMENT") != "production":
+              raise SystemExit("SENTRY_ENVIRONMENT debe ser production")
+
+          (folder / "fat-fish-release.jks").write_bytes(
+              base64.b64decode(encoded, validate=True)
+          )
+          (folder / "production.json").write_text(json.dumps(config))
+          PY
+
+      - name: Compilar APK firmado de producción
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/fat-fish-release.jks
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$ANDROID_STORE_PASSWORD"
+          test -n "$ANDROID_KEY_ALIAS"
+          test -n "$ANDROID_KEY_PASSWORD"
+          flutter build apk --release \
+            --dart-define-from-file="$RUNNER_TEMP/production.json" \
+            --build-number="${{ github.run_number }}"
+
+      - name: Verificar firma del APK
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -n 1)"
+          "$APKSIGNER" verify --verbose \
+            build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Eliminar archivos privados temporales
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/fat-fish-release.jks" \
+                "$RUNNER_TEMP/production.json"
 
       - name: Subir artefacto (APK)
         uses: actions/upload-artifact@v7
         with:
           name: fat-fish-mobile-apk
           retention-days: 7
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          path: build/app/outputs/flutter-apk/app-*.apk
           if-no-files-found: error
 
   release:
