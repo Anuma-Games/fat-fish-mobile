@@ -46,17 +46,21 @@ unión durante 5 ms. La primera y la última muestra PCM tienen el mismo valor (
 - Lanzamiento: `launch.wav`; un solo rodado `roll.wav`, que varía entre 0.7× y 1.3×.
 - Impactos: 14 tomas con variación leve de tono y sin repetir la última toma.
 - Los contactos discretos empiezan cuando la bola baja hacia las casillas (mitad del giro).
-- Los rebotes usan un tono más grave; el cierre usa `settle.wav`.
-- El modo de movimiento reducido reproduce únicamente el asentamiento; no lanza ni rueda.
+- Los rebotes usan un tono más grave. Al entrar en la casilla definitiva, según el ángulo dibujado
+  (incluido el salto sobre el separador), se detienen los impactos y el rodado y se pide una única
+  vibración media. No se espera al final del controlador de animación ni se reproduce `settle.wav`.
+- Con movimiento reducido el resultado y la vibración son inmediatos, sin sonidos de ruleta.
 - Se eliminaron los 18 WAV sintéticos de rodado/clics/caída de la app.
 
-Captura de un giro de la pantalla Mesa: 6.548 s a 44 100 Hz, estéreo; pico 0.38504 y RMS 0.02103 con efectos al 80 %, sin música para escuchar la ruleta aislada.
+Captura previa al ajuste de vibración y retirada del clic final: 6.548 s a 44 100 Hz, estéreo; pico 0.38504 y RMS 0.02103 con efectos al 80 %, sin música para escuchar la ruleta aislada.
 
 ## Comprobaciones del proyecto
 
 - Formato y análisis estático correctos.
-- **177 pruebas** aprobadas. Incluyen sonido apagado inicialmente, propagación de los niveles
+- **179 pruebas** aprobadas. Incluyen sonido apagado inicialmente, propagación de los niveles
   0/10 y 10/10, pausa/reanudación por ciclo de vida y persistencia de preferencias.
+  Dos pruebas recorren el giro fotograma a fotograma (con y sin proveedor de sonido): verifican
+  vibración al entrar en la casilla final, sin duplicación al terminar ni nuevos impactos tras caer.
 - APK de depuración compilado para la app normal (`lib/main.dart`).
 
 ## Revisión auditiva en teléfono

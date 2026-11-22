@@ -76,6 +76,7 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
   double _ballTo = 0;
   double _radiusFrom = RouletteWheel.trackRadius;
   bool _inPocket = false;
+  bool _landed = false;
   int? _pick;
 
   // Sound of the frame before, to pace the clicks and the roll.
@@ -242,6 +243,7 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
     _ballFrom = ballFrom;
     _ballTo = Roulette.ballTarget(ballFrom, pick);
     _pick = pick;
+    _landed = false;
     _pacer.reset();
     _lastProgress = 0;
     _lastBall = _ballFrom;
@@ -263,9 +265,16 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
 
   /// Clicks of the ball against the frets and its roll, paced like the PWA.
   void _onFrame() {
-    final sound = _sound;
-    if (sound == null || !_spinning) return;
+    if (!_spinning) return;
     final k = _progress;
+    // Use the rendered position, including the hop over the last fret. The ball
+    // enters its final pocket before the animation controller finishes slowing.
+    if (k >= 0.75 &&
+        (_ballInHead + _hop - _ballTo).abs() <= Roulette.step / 2) {
+      _land();
+    }
+    final sound = _sound;
+    if (_landed || sound == null) return;
     final seconds =
         (k - _lastProgress) * MesaPage.spinDuration.inMicroseconds / 1e6;
     if (seconds <= 0) return;
@@ -300,13 +309,18 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
     _radiusPrevious = radius;
   }
 
+  void _land() {
+    if (_landed) return;
+    _landed = true;
+    _sound?.stopRoll();
+    Haptics.medium(context);
+  }
+
   void _finish() {
     if (!mounted || _spin.value < 1) return;
     final number = Roulette.order[_pick!];
-    _sound
-      ?..stopRoll()
-      ..fall();
-    Haptics.medium(context);
+    // Also covers reduced motion and a skipped final animation frame.
+    _land();
     setState(() {
       _inPocket = true;
       _spins++;

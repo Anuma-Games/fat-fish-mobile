@@ -199,7 +199,9 @@ La ruleta usa las mismas grabaciones del juego (`assets/sonidos/roulette/`): lan
 14 golpes y asentamiento de la bola. Se copian sin procesar con `python3 -I tool/import_roulette.py`,
 desde `fat-fish-game/Assets/Resources/Audio/Roulette`; acepta otra ruta con `--source`.
 El rodado cambia de velocidad con la bola y los golpes individuales empiezan al bajar a las casillas,
-con variaciones ligeras de tono y sin repetir inmediatamente la misma toma.
+con variaciones ligeras de tono y sin repetir inmediatamente la misma toma. Al entrar en su casilla
+definitiva se detienen los golpes y el rodado y se dispara una sola vibración; no se añade
+un clic al terminar la animación. El archivo `settle.wav` se conserva en el banco, sin reproducirse en la mesa.
 
 Para exportar música, importar la ruleta y regenerar el encendido de la lámpara:
 `python3 -I tool/sonidos_mesa.py` (requiere .NET SDK 8+ y el código del juego).

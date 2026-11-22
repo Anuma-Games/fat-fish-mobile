@@ -5,6 +5,7 @@ import 'package:fat_fish_mobile/features/mesa/domain/roulette.dart';
 import 'package:fat_fish_mobile/features/mesa/presentation/pages/mesa_page.dart';
 import 'package:fat_fish_mobile/features/mesa/presentation/widgets/roulette_wheel.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -110,7 +111,7 @@ void main() {
     expect(sound.rolls, isNotEmpty);
     expect(sound.rolls.first, greaterThan(sound.rolls.last));
     expect(sound.stops, greaterThanOrEqualTo(1));
-    expect(sound.falls, 1);
+    expect(sound.falls, 0);
 
     // The ball rides the head: it rests in its pocket wherever the head left it, not
     // always at the top.
@@ -123,6 +124,71 @@ void main() {
 
     await leave(tester);
   });
+
+  for (final withSound in [true, false]) {
+    testWidgets('landing haptic follows the final pocket (sound: $withSound)', (
+      tester,
+    ) async {
+      final impacts = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'HapticFeedback.vibrate') {
+            impacts.add(call.arguments as String);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      if (withSound) {
+        await pumpMesa(tester);
+      } else {
+        await tester.pumpWidget(
+          MaterialApp(home: MesaPage(random: math.Random(7))),
+        );
+      }
+      await tester.tap(find.bySemanticsLabel('Girar la ruleta'));
+      await tester.pump();
+      final pocket = Roulette.order.indexOf(firstNumber(7));
+      var entered = false;
+      var clicksAtLanding = 0;
+      var rollsAtLanding = 0;
+      for (var frame = 0; frame < 400; frame++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        final wheel = tester.widget<RouletteWheel>(find.byType(RouletteWheel));
+        final center = wheel.head + pocket * Roulette.step + Roulette.step / 2;
+        final offset = wheel.ball - center;
+        final inFinalPocket =
+            (offset - offset.roundToDouble()).abs() <= Roulette.step / 2 &&
+            (wheel.ballRadius - RouletteWheel.pocketRadius).abs() < 1;
+        final landed = impacts.contains('HapticFeedbackType.mediumImpact');
+        if (!entered && landed) {
+          expect(inFinalPocket, isTrue);
+          expect(find.text('La bola corre…'), findsOneWidget);
+          entered = true;
+          clicksAtLanding = sound.clicks;
+          rollsAtLanding = sound.rolls.length;
+        } else if (!entered) {
+          expect(inFinalPocket, isFalse);
+        } else {
+          expect(sound.clicks, clicksAtLanding);
+          expect(sound.rolls.length, rollsAtLanding);
+        }
+      }
+      expect(entered, isTrue);
+      expect(
+        impacts.where((s) => s == 'HapticFeedbackType.mediumImpact'),
+        hasLength(1),
+      );
+      expect(sound.falls, 0);
+      await leave(tester);
+    });
+  }
 
   testWidgets('a second spin moves the first number to the last ones', (
     tester,
@@ -158,7 +224,7 @@ void main() {
       expect(sound.clicks, 0);
       expect(sound.launches, 0);
       expect(sound.rolls, isEmpty);
-      expect(sound.falls, 1);
+      expect(sound.falls, 0);
 
       await leave(tester);
     },
