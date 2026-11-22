@@ -43,7 +43,9 @@ unión durante 5 ms. La primera y la última muestra PCM tienen el mismo valor (
 ## Banco de ruleta
 
 - 17 archivos de `fat-fish-game/Assets/Resources/Audio/Roulette`, copiados sin modificar sus bytes.
-- Lanzamiento: `launch.wav`; un solo rodado `roll.wav`, que varía entre 0.7× y 1.3×.
+- Lanzamiento breve: `launch.wav`. El roce del borde usa `roll.wav` a velocidad natural fija,
+  ganancia máxima 0.35; baja suavemente con la velocidad de la bola y se desvanece entre
+  el 50 % y el 75 % de la animación, al bajar hacia las casillas.
 - Impactos: 14 tomas con variación leve de tono y sin repetir la última toma.
 - Los contactos discretos empiezan cuando la bola baja hacia las casillas (mitad del giro).
 - Los rebotes usan un tono más grave. Al entrar en la casilla definitiva, según el ángulo dibujado
@@ -60,7 +62,7 @@ Captura previa al ajuste de vibración y retirada del clic final: 6.548 s a 44 1
 - **179 pruebas** aprobadas. Incluyen sonido apagado inicialmente, propagación de los niveles
   0/10 y 10/10, pausa/reanudación por ciclo de vida y persistencia de preferencias.
   Dos pruebas recorren el giro fotograma a fotograma (con y sin proveedor de sonido): verifican
-  un solo clic normal y vibración al entrar en la casilla final, sin duplicación al terminar ni nuevos impactos tras caer.
+  un solo clic normal y vibración al entrar en la casilla final, sin duplicación al terminar ni nuevos impactos tras caer. La prueba del giro comprueba además que el rodado suena en el borde y deja de solicitarse al alcanzar las casillas.
 - APK de depuración compilado para la app normal (`lib/main.dart`).
 
 ## Revisión auditiva en teléfono

@@ -87,6 +87,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 2100));
     expect(sound.launches, 1);
     expect(sound.clicks, 0); // The ball is still on the outer track.
+    expect(sound.rolls, isNotEmpty); // Friction remains audible on the rim.
 
     // Frame by frame, so the clicks follow the ball.
     for (var i = 0; i < 120; i++) {
@@ -109,6 +110,7 @@ void main() {
     expect(sound.tones.where((t) => t < 3000 && t > 2700), isNotEmpty);
     expect(sound.tones, contains(1700));
     expect(sound.rolls, isNotEmpty);
+    expect(sound.rolls.last, greaterThanOrEqualTo(0.0625));
     expect(sound.rolls.first, greaterThan(sound.rolls.last));
     expect(sound.stops, greaterThanOrEqualTo(1));
     expect(sound.falls, 0);

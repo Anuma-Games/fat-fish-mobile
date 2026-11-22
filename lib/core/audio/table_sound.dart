@@ -77,8 +77,8 @@ class AudioTableSound implements TableSound {
   static const _folder = 'assets/sonidos';
 
   static const _hitCount = 14;
-  // Same relative gains as RouletteSound.cs in the game.
-  static const _rollGain = 0.6;
+  // A softer, steady rolling texture underneath the recorded impacts.
+  static const _rollGain = 0.35;
   static const _hitGain = 0.6;
 
   /// Level of the ambience against the ball.
@@ -207,11 +207,11 @@ class AudioTableSound implements TableSound {
     _safe(() {
       _rolling ??= _soloud.play(_roll!, volume: 0, looping: true);
       final pace = speed.clamp(0.0, 1.0);
-      final level = _rollGain * pace * (1 - 0.5 * amongFrets.clamp(0.0, 1.0));
-      // The original recording slows with the ball, as in RouletteSound.cs.
-      _soloud
-        ..setRelativePlaySpeed(_rolling!, 0.7 + 0.6 * pace)
-        ..fadeVolume(_rolling!, level, const Duration(milliseconds: 100));
+      final level =
+          _rollGain * (0.45 + 0.55 * pace) * (1 - amongFrets.clamp(0.0, 1.0));
+      // Keep the recording's natural pitch instead of a sweeping effect.
+      // Only the level follows the ball and fades on descent.
+      _soloud.fadeVolume(_rolling!, level, const Duration(milliseconds: 100));
     });
   }
 

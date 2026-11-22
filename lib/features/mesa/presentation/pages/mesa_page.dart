@@ -275,8 +275,9 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
     }
     final sound = _sound;
     if (_landed || sound == null) return;
+    final previousProgress = _lastProgress;
     final seconds =
-        (k - _lastProgress) * MesaPage.spinDuration.inMicroseconds / 1e6;
+        (k - previousProgress) * MesaPage.spinDuration.inMicroseconds / 1e6;
     if (seconds <= 0) return;
     final ball = _ballInHead;
     final frets = (ball - _lastBall) / seconds * Roulette.pockets;
@@ -286,9 +287,13 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
     // On the track the clicks are fast, light and high; among the frets louder, deeper
     // and further apart, as in the PWA.
     final amongFrets = ClickPacer.amongFrets(k);
-    sound.roll(ClickPacer.speedAt(k), amongFrets);
-    // The track recording already contains its rolling texture. Discrete hits
-    // start only when the ball actually descends towards the frets.
+    // The rim keeps its rolling friction; fade it out during the descent, then
+    // let the individual pocket impacts take over.
+    if (k < 0.75) {
+      sound.roll(ClickPacer.speedAt(k), _smooth(0.5, 0.75, k));
+    } else if (previousProgress < 0.75) {
+      sound.stopRoll();
+    }
     final clicks = k < 0.5
         ? 0
         : _pacer.advance(progress: k, seconds: seconds, fretsPerSecond: frets);

@@ -32,9 +32,10 @@ Grabaciones copiadas sin modificaciones desde
 Ambas fuentes se publican bajo **CC0 1.0**, según sus páginas de Freesound.
 Licencia: https://creativecommons.org/publicdomain/zero/1.0/
 
-La app aplica las ganancias relativas de `RouletteSound.cs` (rodado/golpes 0.6;
-lanzamiento 0.7×golpes; asentamiento 0.6×golpes), variación de tono en impactos y
-velocidad del rodado entre 0.7× y 1.3×. No sintetiza los sonidos de la ruleta.
+La app conserva las ganancias de golpes de `RouletteSound.cs` (golpes 0.6;
+lanzamiento 0.7×golpes; asentamiento 0.6×golpes) y la variación de tono en impactos.
+El rodado usa una ganancia máxima de 0.35, velocidad natural fija y un desvanecimiento
+al bajar del borde hacia las casillas. No sintetiza los sonidos de la ruleta.
 
 ## Encendido de la lámpara
 
