@@ -1,5 +1,4 @@
 import 'package:fat_fish_mobile/app/nav_bar.dart';
-import 'package:fat_fish_mobile/core/config/app_config.dart';
 import 'package:fat_fish_mobile/core/presentation/bars_visibility.dart';
 import 'package:fat_fish_mobile/core/presentation/motion.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/casino_background.dart';
@@ -132,14 +131,6 @@ class _AppShellState extends State<AppShell> {
           child: CasinoBackground(child: widget.navigationShell),
         ),
       ),
-      floatingActionButton: AppConfig.sentryTestButton
-          ? FloatingActionButton.small(
-              tooltip: 'Probar Sentry',
-              onPressed: () =>
-                  throw StateError('Error de prueba para verificar Sentry'),
-              child: const Icon(Icons.bug_report),
-            )
-          : null,
       bottomNavigationBar: ValueListenableBuilder(
         valueListenable: _barsVisible,
         builder: (context, visible, child) => AnimatedSlide(
