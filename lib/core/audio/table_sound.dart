@@ -115,15 +115,22 @@ class AudioTableSound implements TableSound {
     required double volume,
   }) async {
     final turnedOn = ambience && !_ambienceOn;
+    final turnedOff = (_ambienceOn && !ambience) || (_effectsOn && !effects);
     _ambienceOn = ambience;
     _effectsOn = effects;
-    _volume = volume;
-    if (!effects) stopRoll();
+    _volume = volume.clamp(0, 1);
+    if (turnedOff) {
+      _hold();
+    } else if (!effects) {
+      stopRoll();
+    }
     if (ambience || effects) {
       await _safeAsync(_prepare);
       if (!_loaded) return;
     }
     _safe(() {
+      // One master level also changes short sounds that are already playing.
+      if (_loaded) _soloud.setGlobalVolume(_volume);
       _applyAmbience();
       // The lamp switching on, as in the PWA.
       if (turnedOn && _ambienceAudible) _play(_switchOn, 1);
@@ -154,22 +161,18 @@ class AudioTableSound implements TableSound {
   }
 
   void _hold() {
-    stopRoll();
+    _ambience = null;
+    _rollingHigh = null;
+    _rollingLow = null;
     _safe(() {
-      final handle = _ambience;
-      if (handle != null) _soloud.setPause(handle, true);
+      // Stop transient clicks, the fall and the lamp relay too, not just loops.
+      if (_loaded) _soloud.stopAll();
     });
   }
 
   void _release() {
     if (_held || !_loaded) return;
-    _safe(() {
-      final handle = _ambience;
-      if (handle != null && _soloud.getIsValidVoiceHandle(handle)) {
-        _soloud.setPause(handle, false);
-      }
-      _applyAmbience();
-    });
+    _safe(_applyAmbience);
   }
 
   @override
@@ -191,7 +194,7 @@ class AudioTableSound implements TableSound {
       _rollingLow ??= _soloud.play(_rollLow!, volume: 0, looping: true);
       // The PWA lowers a filter from 380 to 180 Hz as the ball slows: here the high and
       // the low rumble trade places.
-      final level = _volume * speed * (1 - 0.5 * amongFrets);
+      final level = speed * (1 - 0.5 * amongFrets);
       const glide = Duration(milliseconds: 100);
       _soloud
         ..fadeVolume(_rollingHigh!, level * speed, glide)
@@ -248,6 +251,12 @@ class AudioTableSound implements TableSound {
       (event) => _interrupt(begin: event.begin),
     );
     if (!_soloud.isInitialized) await _soloud.init();
+    // Leave the mix below full scale when clicks overlap. Threshold 0 avoids
+    // the limiter's automatic makeup gain; the WAVs already have their gain.
+    final limiter = _soloud.filters.limiterFilter;
+    limiter.activate();
+    limiter.threshold.value = 0;
+    limiter.outputCeiling.value = -1;
 
     Future<AudioSource> load(String name) =>
         _soloud.loadAsset('$_folder/$name.wav');
@@ -268,7 +277,7 @@ class AudioTableSound implements TableSound {
   void _applyAmbience() {
     final handle = _ambience;
     if (_ambienceAudible) {
-      final level = _volume * _ambienceGain;
+      const level = _ambienceGain;
       if (handle == null || !_soloud.getIsValidVoiceHandle(handle)) {
         // Fades in like the PWA, without a jump.
         final started = _soloud.play(
@@ -291,7 +300,7 @@ class AudioTableSound implements TableSound {
 
   void _play(AudioSource? source, double strength) {
     if (source == null) return;
-    _soloud.play(source, volume: _volume * strength);
+    _soloud.play(source, volume: strength);
   }
 
   /// Sound is an extra: a failure is logged and the app goes on in silence.

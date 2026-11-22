@@ -1,9 +1,9 @@
 """
-Generates the table sounds in assets/sonidos/ from the recipe of sonido-mesa.ts in the PWA, which
-makes them live with the Web Audio API: Flutter has no Web Audio, so here they are rendered once to
-WAV files with the same oscillators, noise and filters.
+Builds the sounds in assets/sonidos/: a recorded backroom ambience and roulette effects based
+on sonido-mesa.ts in the PWA. Flutter renders the effects once to WAV with the same oscillators,
+noise and filters instead of using the Web Audio API.
 
-- ambiente.wav: room tone (low-passed noise) and the mains hum of the lamp (60 and 120 Hz); loops.
+- ambiente.wav: muffled pub recording with sparse wooden creaks; seamless backroom loop.
 - rodado_agudo.wav, rodado_grave.wav: low wooden rumble of the wheel under the ball, low-passed
   at 380 and 180 Hz; the app crossfades them with the speed, as the PWA moves its filter.
 - clic_<tono>_<n>.wav: the ball against a fret, a burst of noise around each tone the PWA uses
@@ -12,18 +12,24 @@ WAV files with the same oscillators, noise and filters.
 - caida.wav: the ball settling in its pocket, a dull knock on wood and a last click.
 - encendido.wav: the lamp switching on, a relay click and a short buzz.
 
-Only the Python standard library. Usage, from the root of the repository:
+The ambience source is tool/audio/quiet_bar.mp3 (alexftw123, CC0; see assets/sonidos/CREDITS.md).
+It needs ffmpeg, or macOS afconvert, to decode the source. Processing uses the standard library.
+Usage, from the root of the repository:
     python -I tool/sonidos_mesa.py
 """
 
 import math
+import array
 import os
 import random
+import shutil
 import struct
+import subprocess
+import tempfile
 import wave
 
 RATE = 22050
-# Master gain of the PWA (0.7) and a makeup gain, so a phone plays them as loud as a browser.
+# Base synthesis level of the PWA; per-family makeup gain is applied at export.
 MASTER = 0.7 * 2.5
 
 random.seed(7)  # The same files every time
@@ -82,7 +88,7 @@ def sumar(*senales):
     return [sum(s[i] for s in senales if i < len(s)) for i in range(n)]
 
 
-def guardar(nombre, signal):
+def guardar(nombre, signal, gain=1):
     ruta = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         'assets',
@@ -90,8 +96,10 @@ def guardar(nombre, signal):
         nombre,
     )
     os.makedirs(os.path.dirname(ruta), exist_ok=True)
-    pico = max(abs(x) for x in signal) * MASTER
-    escala = MASTER / pico if pico > 0.98 else MASTER  # Never clips
+    escala = MASTER * gain
+    pico = max(abs(x) for x in signal) * escala
+    if pico > 0.85:
+        escala *= 0.85 / pico  # Headroom for simultaneous sounds in the mixer
     with wave.open(ruta, 'wb') as archivo:
         archivo.setnchannels(1)
         archivo.setsampwidth(2)
@@ -106,15 +114,51 @@ def guardar(nombre, signal):
 
 
 def ambiente():
-    # 4 s: whole cycles of 60 and 120 Hz, so the hum also loops without a seam
-    n = 4 * RATE
-    cuarto = [x * 0.05 for x in bucle(noise(n), 'lowpass', 380)]
-    zumbido = [
-        0.03 * math.sin(2 * math.pi * 60 * i / RATE)
-        + 0.012 * math.sin(2 * math.pi * 120 * i / RATE)
-        for i in range(n)
-    ]
-    return sumar(cuarto, zumbido)
+    source = os.path.join(os.path.dirname(__file__), 'audio', 'quiet_bar.mp3')
+    with tempfile.TemporaryDirectory() as folder:
+        decoded = os.path.join(folder, 'quiet_bar.wav')
+        if shutil.which('ffmpeg'):
+            command = ['ffmpeg', '-v', 'error', '-nostdin', '-y', '-i', source,
+                       '-ar', str(RATE), '-ac', '1', '-c:a', 'pcm_s16le', decoded]
+        elif shutil.which('afconvert'):
+            command = ['afconvert', '-f', 'WAVE', '-d', f'LEI16@{RATE}', '-c', '1', source, decoded]
+        else:
+            raise RuntimeError('Install ffmpeg to regenerate the recorded ambience.')
+        subprocess.run(command, check=True)
+        with wave.open(decoded, 'rb') as recording:
+            pcm = array.array('h', recording.readframes(recording.getnframes()))
+    signal = [sample / 32768 for sample in pcm]
+    # Behind a closed door: remove machinery/bass and soften clear consonants.
+    muffled = filtrar(signal, 'lowpass', 1450)
+    bass = filtrar(muffled, 'lowpass', 140)
+    signal = [voice - low for voice, low in zip(muffled, bass)]
+    # Keep occasional glass hits from determining the level of the whole room.
+    envelope = 0.0
+    compressed = []
+    attack, release = math.exp(-1 / (0.005 * RATE)), math.exp(-1 / (0.12 * RATE))
+    for sample in signal:
+        coefficient = attack if abs(sample) > envelope else release
+        envelope = coefficient * envelope + (1 - coefficient) * abs(sample)
+        gain = (0.02 / envelope) ** (2 / 3) if envelope > 0.02 else 1
+        compressed.append(sample * gain)
+    rms = math.sqrt(sum(x * x for x in compressed) / len(compressed))
+    gain = min(0.12 / rms, 0.60 / max(abs(x) for x in compressed))
+    signal = [sample * gain for sample in compressed]
+    # Small, irregular wood-friction details, well below the voices/glasses.
+    rng = random.Random(184)
+    for start, tone in [(7.3, 260), (19.7, 190), (36.4, 230), (49.1, 170)]:
+        count = int(0.38 * RATE)
+        grain = filtrar([rng.uniform(-1, 1) for _ in range(count)], 'bandpass', tone, 2)
+        for i, sample in enumerate(grain):
+            envelope = math.sin(math.pi * i / count) ** 2
+            signal[int(start * RATE) + i] += sample * envelope * 0.035
+    # Overlap the last three seconds with the opening; no silent gap at wrap.
+    fade = 3 * RATE
+    loop = signal[fade:]
+    for i in range(fade):
+        angle = i / (fade - 1) * math.pi / 2
+        loop[len(loop) - fade + i] = signal[len(signal) - fade + i] * math.cos(angle) + signal[i] * math.sin(angle)
+    return loop
 
 
 def rodado(freq):
@@ -163,12 +207,12 @@ def encendido():
 
 
 if __name__ == '__main__':
-    guardar('ambiente.wav', ambiente())
-    guardar('rodado_agudo.wav', rodado(380))
-    guardar('rodado_grave.wav', rodado(180))
+    guardar('ambiente.wav', ambiente(), gain=1 / MASTER)
+    guardar('rodado_agudo.wav', rodado(380), gain=5)
+    guardar('rodado_grave.wav', rodado(180), gain=5)
     for tono in TONOS:
         for toma in range(1, TOMAS + 1):
             # Full strength: the app scales each click by its own strength.
-            guardar(f'clic_{tono}_{toma}.wav', clic(1.0, tono))
-    guardar('caida.wav', caida())
-    guardar('encendido.wav', encendido())
+            guardar(f'clic_{tono}_{toma}.wav', clic(1.0, tono), gain=3)
+    guardar('caida.wav', caida(), gain=1.5)
+    guardar('encendido.wav', encendido(), gain=3)
