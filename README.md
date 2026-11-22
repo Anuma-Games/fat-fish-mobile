@@ -185,7 +185,16 @@ de la barra superior y guarda en el teléfono el ambiente de fondo, los sonidos 
 vibración; la bocina de la barra enciende y apaga el ambiente. El sonido empieza apagado, se pausa cuando la app pasa a segundo plano y, con "reducir
 movimiento", la ruleta da el resultado sin animación.
 
-El fondo es una exportación instrumental de `GameSynth.cs`, el sintetizador de la mesa del juego:
+El fondo visual de la mesa (`assets/images/mesa.jpg`) se exporta desde el escenario actual de Unity,
+sin HUD y con el encuadre original del juego: conserva al crupier, la mesa y el local.
+El exportador ejecuta el constructor de ruleta de la partida antes de renderizar, para incluir
+el tazón y las casillas actuales en lugar del modelo antiguo de la escena guardada.
+La app mantiene el recorte anterior, con un degradado más ligero para mostrar mejor al crupier;
+la altura del fondo acompaña la escala
+de la ruleta para que la foto no quede detrás de los resultados en teléfonos más bajos.
+La exportación se documenta en [`tool/unity/README.md`](tool/unity/README.md).
+
+El fondo musical es una exportación instrumental de `GameSynth.cs`, el sintetizador de la mesa del juego:
 jazz nocturno a 86 BPM, con bajo caminante, acordes con swing, escobillas y vibráfono. Usa la versión tranquila
 (tensión 0, sin jefe), sin conversaciones ni grabaciones de bares. El bucle dura 44.651 segundos, cuatro vueltas
 de la progresión Am7–Dm7–Bbmaj7–E7(b9).

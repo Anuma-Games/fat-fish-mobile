@@ -346,16 +346,26 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
       extendBodyBehindAppBar: true,
       appBar: const FatFishAppBar(title: 'La mesa'),
       // Under the Scaffold, whose MediaQuery counts the bars over the content.
-      body: Builder(
-        builder: (context) {
+      body: LayoutBuilder(
+        builder: (context, constraints) {
           final padding = MediaQuery.paddingOf(context);
+          // Scale the photo's height with the scene too, so the betting table in
+          // the image stays above the result and counters on shorter phones.
+          final sceneScale = math.min(
+            1.0,
+            math.min(
+              constraints.maxWidth / MesaPage._scene.width,
+              math.max(0, constraints.maxHeight - padding.vertical) /
+                  MesaPage._scene.height,
+            ),
+          );
           return Stack(
             children: [
               Positioned(
                 top: padding.top,
                 left: 0,
                 right: 0,
-                height: 460,
+                height: 460 * sceneScale,
                 child: const _Photo(),
               ),
               Positioned.fill(
@@ -569,8 +579,8 @@ class _Photo extends StatelessWidget {
               end: Alignment.bottomCenter,
               colors: [
                 FatFishColors.bg900,
-                Color(0x8C0B1416),
-                Color(0x590B1416),
+                Color(0x4D0B1416),
+                Color(0x290B1416),
                 FatFishColors.bg900,
               ],
               stops: [0, 0.28, 0.55, 1],
