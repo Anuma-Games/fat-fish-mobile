@@ -312,7 +312,9 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
   void _land() {
     if (_landed) return;
     _landed = true;
-    _sound?.stopRoll();
+    _sound
+      ?..stopRoll()
+      ..click(0.7 + 0.3 * _random.nextDouble(), tone: 2700);
     Haptics.medium(context);
   }
 

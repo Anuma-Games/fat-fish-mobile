@@ -159,6 +159,7 @@ void main() {
       var clicksAtLanding = 0;
       var rollsAtLanding = 0;
       for (var frame = 0; frame < 400; frame++) {
+        final clicksBeforeFrame = sound.clicks;
         await tester.pump(const Duration(milliseconds: 16));
         final wheel = tester.widget<RouletteWheel>(find.byType(RouletteWheel));
         final center = wheel.head + pocket * Roulette.step + Roulette.step / 2;
@@ -170,6 +171,8 @@ void main() {
         if (!entered && landed) {
           expect(inFinalPocket, isTrue);
           expect(find.text('La bola corre…'), findsOneWidget);
+          expect(sound.clicks - clicksBeforeFrame, withSound ? 1 : 0);
+          if (withSound) expect(sound.tones.last, 2700);
           entered = true;
           clicksAtLanding = sound.clicks;
           rollsAtLanding = sound.rolls.length;
@@ -221,7 +224,8 @@ void main() {
 
       expect(find.text('La bola corre…'), findsNothing);
       expect(find.text('${firstNumber(7)}'), findsOneWidget);
-      expect(sound.clicks, 0);
+      expect(sound.clicks, 1);
+      expect(sound.tones, [2700]);
       expect(sound.launches, 0);
       expect(sound.rolls, isEmpty);
       expect(sound.falls, 0);

@@ -200,7 +200,7 @@ La ruleta usa las mismas grabaciones del juego (`assets/sonidos/roulette/`): lan
 desde `fat-fish-game/Assets/Resources/Audio/Roulette`; acepta otra ruta con `--source`.
 El rodado cambia de velocidad con la bola y los golpes individuales empiezan al bajar a las casillas,
 con variaciones ligeras de tono y sin repetir inmediatamente la misma toma. Al entrar en su casilla
-definitiva se detienen los golpes y el rodado y se dispara una sola vibración; no se añade
+definitiva se detiene el rodado y se reproduce un único golpe del mismo banco, junto con la vibración; no se añade
 un clic al terminar la animación. El archivo `settle.wav` se conserva en el banco, sin reproducirse en la mesa.
 
 Para exportar música, importar la ruleta y regenerar el encendido de la lámpara:
