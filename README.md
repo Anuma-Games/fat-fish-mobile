@@ -192,7 +192,10 @@ un motor de audio para juegos: el ambiente se repite sin cortes y los clics suen
 El retroceso de las pantallas apiladas usa las rutas de plataforma: arrastre desde el borde
 izquierdo en iOS (se puede cancelar), y gesto/botón Atrás en Android. Ajustes, búsqueda e
 historial vuelven a la pantalla anterior conservando el jugador. Las fichas inferiores
-conservan sus propias rutas; el retroceso no cambia entre pestañas raíz. Desde el contenido
+conservan sus propias rutas. Al volver se cierra primero la pantalla apilada y después
+se recorre el historial de las últimas 5 visitas a secciones durante la sesión, sin modificar el jugador.
+En una sección raíz, arrastrar hacia la derecha desde el borde izquierdo vuelve a la última
+sección visitada; desde el centro se mantiene el recorrido por orden. Desde el contenido
 de una sección raíz, un swipe a la izquierda abre la siguiente ficha y a la derecha la anterior,
 sin volver del último extremo al primero. Las pantallas apiladas conservan su gesto de retroceso.
 Inventario y prueba en iPhone: [`FF-188-retroceso.md`](docs/qa/FF-188-retroceso.md).

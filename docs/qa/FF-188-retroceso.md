@@ -1,117 +1,121 @@
-# FF-188: retroceso en Android e iOS
+# FF-188: gestos e historial de navegación
 
-## Inventario previo
+## Inventario y alcance
 
-| Recorrido | Implementación existente | Comportamiento esperado |
+| Recorrido | Navegación | Resultado esperado |
 |---|---|---|
-| Cambiar sección inferior | `StatefulShellRoute` y barra de FF-108 | Cada pestaña conserva su estado; no es una pila de pantallas |
-| Deslizar sobre fichas | `FatFishNavBar` | Previsualiza al mover y cambia al soltar |
-| Desplazamiento vertical | Listas y `BarsVisibility` | Conserva scroll al volver y no se convierte en retroceso |
-| Abrir Ajustes | `context.push`, navegador raíz | Volver a la pantalla que lo abrió |
-| Buscar/cambiar jugador | `context.push`, navegador raíz | Volver conservando el jugador elegido; cancelar no elige otro |
-| Historial | Ruta hija de Expediente, dentro de su propio `ShellRoute` | Volver a Expediente conservando jugador y scroll |
-| Paneles visuales | Widgets dentro de las pantallas, sin diálogos/hojas modales | No añadir gestos de cierre a paneles que no son rutas |
+| Fichas inferiores de FF-108 | `StatefulShellRoute`, una rama por sección | Conserva el estado de cada pestaña |
+| Deslizar sobre las fichas | Gesto existente en `FatFishNavBar` | Selecciona al soltar |
+| Swipe en el contenido raíz | Izquierda/siguiente, derecha/anterior | Expediente ↔ Mesa ↔ Ranking, sin recorrido circular |
+| Abrir Ajustes o búsqueda | Pantalla apilada en el navegador raíz | Se cierra antes de volver por secciones |
+| Abrir Historial de partidas | Ruta hija de Expediente | Vuelve conservando jugador y scroll |
+| Atrás en una sección raíz | Historial de visitas de la sesión | Vuelve a la sección visitada anteriormente |
+| Paneles visuales | Widgets sin ruta/modal propio | No adquieren un cierre nuevo |
 
-## Fallos reproducidos y correcciones
+El desplazamiento vertical, la barra inferior y el toque de la ruleta mantienen sus
+interacciones. No se cambia el guardado del jugador ni se añaden dependencias.
 
-1. En la combinación actual de Flutter 3.47.9 y go_router 18.1.4, el adaptador de
-   páginas de go_router busca `MaterialApp` del paquete separado `material_ui`, pero
-   esta app usa `MaterialApp` del SDK. La detección automática cae en `NoTransitionPage`:
-   la ruta puede volver, pero no tiene el detector interactivo del borde izquierdo.
-   `router.dart` crea explícitamente las páginas `MaterialPage` del mismo SDK que la
-   app, conservando claves, nombres, argumentos e identificadores de restauración.
-2. Al cerrar Ajustes sobre Historial, el navegador raíz podía comunicar a Android
-   que ya no gestionaba Atrás aunque el navegador interno tuviera una página pendiente.
-   Una prueba reproduce que la última llamada a `SystemNavigator.setFrameworkHandlesBack`
-   queda en `false`. `NavigatorPopHandler` alrededor del contenedor de pestañas mantiene
-   el estado del navegador interno en la ruta raíz y delega el pop a la ruta activa.
-3. Se habilita `android:enableOnBackInvokedCallback="true"` en el manifiesto para
-   participar en el retroceso nativo/predictivo en las versiones compatibles.
+## Historial de secciones
 
-No se agregan detectores horizontales sobre las pantallas, confirmaciones de salida ni
-pops manuales al cancelar el arrastre de iOS. Las pestañas raíz no tienen retroceso
-lateral a otra pestaña; Android puede salir a inicio cuando ya no hay una ruta que cerrar.
+- Registra cambios efectivos, tanto por ficha como por swipe; tocar la sección activa
+  no añade otra visita. Se permiten visitas repetidas en momentos distintos.
+- Conserva como máximo **5 entradas anteriores**, descartando la más antigua al añadir
+  una sexta. No cuenta como entrada la sección que está abierta actualmente.
+- Volver consume una entrada sin volver a registrarla: no genera bucles.
+- Primero se cierra cualquier pantalla apilada de la rama activa; después se consume
+  el historial de secciones. Una rama restaurada conserva sus pantallas y su scroll.
+- Al agotar el historial, Android recupera su salida normal. El gesto de borde de iOS
+  no cambia de sección si ya no hay una visita anterior.
+- Es un historial de la sesión en memoria; se borra al reiniciar la app.
 
-## Comprobaciones automatizadas
+Ejemplos cubiertos por pruebas:
 
-Las pruebas de `test/app/app_shell_test.dart` cubren:
+- Expediente → Ranking → Mesa → Ranking → Atrás: Mesa → Ranking → Expediente.
+- Expediente → Mesa → Ranking → Expediente → Ranking → Mesa → Expediente → Ranking:
+  solo se deshacen las últimas cinco visitas: Expediente → Mesa → Ranking → Expediente → Ranking.
 
-- iOS: iniciar realmente el gesto de borde, soltar para completarlo y soltar por debajo
-  del umbral para cancelarlo, en Ajustes, búsqueda e historial.
-- Cancelar conserva la búsqueda escrita; completar conserva el jugador guardado.
-- Las pestañas raíz de iOS no se cierran con un arrastre horizontal.
-- Android: Ajustes → Historial → Expediente, y búsqueda → Expediente, un paso por Atrás.
-- Scroll del expediente conservado después de cerrar el historial.
-- Atrás desde Ranking raíz no altera el historial de Expediente que sigue montado.
-- El registro nativo de Atrás permanece activo después de cerrar Ajustes sobre Historial.
-- Se mantienen las pruebas existentes de navegación por fichas y desplazamiento de FF-108.
+## Gestos de iOS y Android
 
-La variante de iOS usa las transiciones Cupertino estándar del SDK; no equivale a una
-prueba táctil en iPhone físico. La persistencia se verifica leyendo la base de datos del caso.
+En pantallas apiladas, iOS usa la transición Cupertino estándar del SDK y permite
+completar o cancelar el arrastre desde el borde. Android usa el gesto/botón del sistema.
 
-## Prueba nativa y compilaciones
+En raíces de sección, el borde izquierdo (24 puntos) se reserva para volver por visitas;
+un arrastre hacia la derecha confirmado consume una entrada. El resto del contenido
+conserva el recorrido de fichas por orden. Un gesto corto, cancelado o que regresa al
+origen no navega ni consume visitas. La vuelta entre raíces la gestiona la app con la
+transición de pestañas existente, sin previsualización interactiva de la sección anterior.
 
-La validación Android usa un emulador Medium Phone (Android 13), navegación del sistema
-por gestos y un arranque de diagnóstico con respuestas locales y base de datos en memoria.
-Se envía el arrastre desde el borde con `adb shell input swipe` y el botón con
-`adb shell input keyevent 4`, comprobando en cada paso la ruta y el jugador persistido.
-Los datos de diagnóstico no sustituyen el perfil de un dispositivo personal.
+## Correcciones de plataforma
 
-Resultados del recorrido nativo con el cambio aplicado:
+1. El adaptador automático de go_router 18.1.4 busca el `MaterialApp` del paquete
+   `material_ui`, mientras esta app usa el del SDK Flutter 3.47.9. La detección podía
+   caer en `NoTransitionPage`, sin el detector interactivo de borde. Se crean páginas
+   `MaterialPage` explícitas del SDK, conservando claves, nombres, argumentos y restauración.
+2. Cerrar Ajustes sobre Historial podía desregistrar Atrás en Android aunque aún
+   hubiera una página interna que cerrar. `NavigatorPopHandler` mantiene el estado del
+   navegador interno y delega en la ruta activa.
+3. Un `PopScope` registra el retroceso cuando solo quedan visitas a secciones. El
+   manejador anterior consume las visitas, sin duplicar la acción.
+4. El manifiesto habilita `android:enableOnBackInvokedCallback="true"`.
 
-| Acción del sistema | Ruta resultante | Resultado |
-|---|---|---|
-| Gesto desde el borde en Ajustes | Historial | PASS |
-| Botón Atrás en Historial, después de cerrar Ajustes | Expediente | PASS |
-| Gesto desde el borde en búsqueda | Expediente | PASS |
-| Lectura del jugador tras los tres retrocesos | Jugador 70 conservado | PASS |
+## Validación automática final
 
-El recorrido imprimió `FF188 ALL_PASS`. La prueba usa el sistema Android real del
-emulador; no invoca `Navigator.pop` para simular esos tres retrocesos.
-Formato y análisis correctos; **181 pruebas** del proyecto aprobadas. La validación
-se ejecuta sobre la rama independiente basada en `develop`, sin incorporar los PR
-anteriores que siguen en revisión.
+Formato y análisis estático correctos; **191 pruebas** del proyecto aprobadas.
+Los nuevos casos se ejecutan en variantes Android e iOS y cubren:
 
-Compilación iOS de depuración generada y firmada en `build/ios/iphoneos/Runner.app`,
-con la configuración local habitual. APK Android normal generado desde `lib/main.dart`,
-instalado correctamente en el emulador al terminar y sin el arranque de diagnóstico.
-La compilación de iOS no instala ni verifica gestos táctiles en un iPhone; esa
-comprobación continúa pendiente de la revisión manual descrita debajo.
+- Swipe por orden, extremos sin recorrido circular y conservación de scroll/ruleta.
+- Gestos cortos, cancelados y de ida/vuelta que no consumen entradas.
+- Retroceso en orden temporal, visitas repetidas, toque activo y ausencia de bucles.
+- Límite de cinco visitas y comportamiento al agotar el historial.
+- Prioridad de Ajustes/Historial sobre las visitas de sección.
+- Gesto iOS interactivo y cancelado en Ajustes, búsqueda e historial; búsqueda y jugador conservados.
+- Registro nativo de Android después de cerrar Ajustes sobre Historial.
 
-## Revisión manual en el iPhone físico
+Se conservan las pruebas de navegación por fichas y desplazamiento de FF-108.
+Los comandos finales son:
 
-1. Iniciar la app de esta rama con la configuración habitual:
-   `flutter run --dart-define-from-file=config/local.json` y elegir el iPhone conectado.
-   Hacer un reinicio completo de la app si había otra rama ejecutándose.
-2. Elegir un jugador. Abrir Ajustes y arrastrar desde el borde izquierdo hacia la derecha:
-   primero un trayecto corto y lento para cancelar, después uno largo para volver.
-3. Abrir Cambiar jugador, escribir una consulta y repetir. Cancelar debe conservar el
-   texto; completar debe volver sin cambiar el jugador guardado.
-4. Abrir Historial desde Expediente y repetir ambos gestos. Comprobar jugador y scroll.
-5. Cambiar entre las tres fichas, desplazar las listas verticalmente y confirmar que
-   estos gestos siguen funcionando. Desde una pestaña raíz no debe simularse una pantalla anterior.
-6. Reiniciar la app y comprobar que el jugador continúa guardado.
+```bash
+dart format --output=none --set-exit-if-changed lib test
+flutter analyze --no-pub
+flutter test --no-pub
+flutter build apk --debug --no-pub -t lib/main.dart --dart-define-from-file=config/local.json
+flutter build ios --debug --no-pub --dart-define-from-file=config/local.json
+```
 
-**Pendiente de registrar:** modelo del iPhone, versión de iOS y resultado de la prueba
-manual del solicitante. No se declara validado en iPhone físico antes de esa revisión.
+Compilaciones completadas: APK de depuración e iOS de depuración firmado.
+Los builds son de la app normal, con configuración local; no requieren modificar las
+preferencias o el jugador de un dispositivo para compilar. Los resultados de las
+variantes de widgets verifican la lógica y los gestos Flutter; no son una prueba táctil
+sobre un iPhone físico.
+
+## Evidencia de dispositivo y revisión manual
+
+En la validación previa del retroceso se usó un emulador Medium Phone, Android 13,
+con navegación gestual del sistema, respuestas locales y base de datos en memoria:
+
+| Acción del sistema | Resultado |
+|---|---|
+| Gesto del borde en Ajustes | Volvió a Historial |
+| Botón Atrás en Historial tras cerrar Ajustes | Volvió a Expediente |
+| Gesto del borde en búsqueda | Volvió a Expediente |
+| Lectura del jugador al terminar | Jugador 70 conservado |
+
+Se enviaron `adb shell input swipe` y `adb shell input keyevent 4`; el recorrido terminó
+con `FF188 ALL_PASS`. Esa prueba de dispositivo corresponde al retroceso apilado previo;
+la ampliación final de secciones está cubierta por los nuevos tests y builds completos.
+
+El solicitante confirmó que realizó las pruebas manuales de la navegación y que todo
+funciona, antes de solicitar esta actualización de pruebas y el PR. El equipo de prueba
+habitual indicado por el solicitante es su iPhone físico; no se reportaron modelo ni
+versión para esa validación y no se inventan esos datos.
+
+Para repetir en teléfono: reiniciar la app de esta rama, probar ambos sentidos del
+swipe, completar/cancelar el borde, alternar más de cinco veces y volver hasta agotar
+visitas. Abrir Ajustes, búsqueda e historial y comprobar que se cierran primero,
+conservando jugador, texto de búsqueda al cancelar y scroll al regresar.
 
 ## Referencias
 
 - [Flutter: NavigatorPopHandler](https://api.flutter.dev/flutter/widgets/NavigatorPopHandler-class.html)
 - [Flutter: retroceso predictivo de Android](https://docs.flutter.dev/platform-integration/android/predictive-back)
 - [Flutter: transición Cupertino](https://api.flutter.dev/flutter/cupertino/CupertinoRouteTransitionMixin-mixin.html)
-
-## Ampliación: swipe horizontal entre secciones
-
-Desde el contenido de una pestaña raíz: izquierda avanza Expediente → Mesa → Ranking;
-derecha recorre el orden inverso. Cambia una sección por gesto al soltar, sin recorrido
-circular. Reutiliza la selección existente para conservar el estado de cada pestaña.
-Un arrastre corto, cancelado o que vuelve al origen no navega. Las pantallas apiladas
-(Ajustes, búsqueda e historial) conservan su retroceso de plataforma. La barra inferior
-mantiene su gesto independiente y el desplazamiento vertical sigue a cargo de las listas.
-
-Esta ampliación se formatea y revisa por diff, sin ejecutar pruebas ni builds, según
-lo acordado con el solicitante. Las 181 pruebas y compilaciones anteriores corresponden
-al ajuste de retroceso previo; la comprobación del swipe queda para la prueba manual.
-Comprobar los dos sentidos, los extremos, el scroll vertical, el toque de la ruleta y
-la cancelación antes de aprobar.
