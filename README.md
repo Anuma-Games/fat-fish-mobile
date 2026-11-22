@@ -195,9 +195,15 @@ hermano `fat-fish-game`; se puede indicar otra ruta con `--source /ruta/GameSynt
 C# original con un adaptador mínimo, sin abrir Unity ni modificar el juego. Los créditos están en
 `assets/sonidos/CREDITS.md`.
 
-Los efectos de la ruleta siguen la receta de `sonido-mesa.ts` de la PWA. Se regeneran, junto con el ambiente,
-con `python3 -I tool/sonidos_mesa.py` (requiere .NET SDK 8+ y el código del juego). La ganancia se ajusta por familia:
-rodado ×5, clics y encendido ×3, caída ×1.5. SoLoud (`flutter_soloud`) aplica los 10 niveles guardados como volumen
+La ruleta usa las mismas grabaciones del juego (`assets/sonidos/roulette/`): lanzamiento, rodado,
+14 golpes y asentamiento de la bola. Se copian sin procesar con `python3 -I tool/import_roulette.py`,
+desde `fat-fish-game/Assets/Resources/Audio/Roulette`; acepta otra ruta con `--source`.
+El rodado cambia de velocidad con la bola y los golpes individuales empiezan al bajar a las casillas,
+con variaciones ligeras de tono y sin repetir inmediatamente la misma toma.
+
+Para exportar música, importar la ruleta y regenerar el encendido de la lámpara:
+`python3 -I tool/sonidos_mesa.py` (requiere .NET SDK 8+ y el código del juego).
+SoLoud (`flutter_soloud`) aplica los 10 niveles guardados como volumen
 maestro, también a los sonidos en curso, y limita los picos de la mezcla a −1 dBFS. Al pasar a segundo plano se
 detienen todos los sonidos, incluidos los efectos cortos; al volver se recupera el ambiente si estaba activado.
 

@@ -10,11 +10,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Writes down what the table plays.
 class _RecordingSound extends SilentTableSound {
+  int launches = 0;
   int clicks = 0;
   final tones = <double>[];
   int falls = 0;
   final rolls = <double>[];
   int stops = 0;
+
+  @override
+  void launch() => launches++;
 
   @override
   void click(double strength, {double tone = 3000}) {
@@ -75,6 +79,13 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Girar la ruleta'));
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('La bola corre…'), findsOneWidget);
+    expect(sound.launches, 1);
+    expect(sound.clicks, 0);
+    // Tapping again during the spin does not release another ball or sound.
+    await tester.tap(find.bySemanticsLabel('Girar la ruleta'));
+    await tester.pump(const Duration(milliseconds: 2100));
+    expect(sound.launches, 1);
+    expect(sound.clicks, 0); // The ball is still on the outer track.
 
     // Frame by frame, so the clicks follow the ball.
     for (var i = 0; i < 120; i++) {
@@ -92,8 +103,8 @@ void main() {
     expect(find.text(label), findsOneWidget);
     expect(find.text('1'), findsWidgets);
     expect(sound.clicks, greaterThan(20));
-    // High on the track, deeper among the pockets, and knocks on the bounces.
-    expect(sound.tones.first, 3600);
+    // Light contacts on entering the frets, fuller ones later, wood on bounces.
+    expect(sound.tones.first, inExclusiveRange(3300, 3600));
     expect(sound.tones.where((t) => t < 3000 && t > 2700), isNotEmpty);
     expect(sound.tones, contains(1700));
     expect(sound.rolls, isNotEmpty);
@@ -145,6 +156,7 @@ void main() {
       expect(find.text('La bola corre…'), findsNothing);
       expect(find.text('${firstNumber(7)}'), findsOneWidget);
       expect(sound.clicks, 0);
+      expect(sound.launches, 0);
       expect(sound.rolls, isEmpty);
       expect(sound.falls, 1);
 

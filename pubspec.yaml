@@ -38,6 +38,7 @@ flutter:
     - assets/images/fat_fish.png
     - assets/images/mesa.jpg
     - assets/sonidos/
+    - assets/sonidos/roulette/
 
   fonts:
     - family: Jersey10

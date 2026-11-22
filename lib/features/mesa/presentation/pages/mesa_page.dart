@@ -254,6 +254,7 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
       _finish();
       return;
     }
+    _sound?.launch();
     _spin.value = 0;
     setState(() {});
     _updatePulse();
@@ -277,11 +278,11 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
     // and further apart, as in the PWA.
     final amongFrets = ClickPacer.amongFrets(k);
     sound.roll(ClickPacer.speedAt(k), amongFrets);
-    final clicks = _pacer.advance(
-      progress: k,
-      seconds: seconds,
-      fretsPerSecond: frets,
-    );
+    // The track recording already contains its rolling texture. Discrete hits
+    // start only when the ball actually descends towards the frets.
+    final clicks = k < 0.5
+        ? 0
+        : _pacer.advance(progress: k, seconds: seconds, fretsPerSecond: frets);
     final strength = 0.28 + 0.72 * amongFrets;
     final tone = 3600 - 900 * amongFrets;
     for (var i = 0; i < clicks; i++) {

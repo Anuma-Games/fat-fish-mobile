@@ -1,21 +1,13 @@
 """
-Builds the sounds in assets/sonidos/: GameSynth instrumental music and roulette effects based
-on sonido-mesa.ts in the PWA. The background runs the game's original C# callback offline;
-the effects use the same oscillators, noise and filters as the PWA.
+Build the mobile audio assets from the game's sources.
 
-- ambiente.wav: calm GameSynth jazz, 86 BPM, four turns of its four-bar progression; no voices.
-- rodado_agudo.wav, rodado_grave.wav: low wooden rumble of the wheel under the ball, low-passed
-  at 380 and 180 Hz; the app crossfades them with the speed, as the PWA moves its filter.
-- clic_<tono>_<n>.wav: the ball against a fret, a burst of noise around each tone the PWA uses
-  (3600 Hz on the track down to 2700 Hz among the pockets, 1700 Hz for each bounce), in three
-  takes each, as the PWA starts the noise at a random point every time.
-- caida.wav: the ball settling in its pocket, a dull knock on wood and a last click.
-- encendido.wav: the lamp switching on, a relay click and a short buzz.
+- ambiente.wav: calm GameSynth jazz, 86 BPM; exported by render_gamesynth.py.
+- roulette/: the game's 17 recorded roulette samples; copied by import_roulette.py.
+- encendido.wav: the synthesized lamp relay from the PWA recipe.
 
-The background needs .NET SDK 8+ and the sibling fat-fish-game checkout.
-See render_gamesynth.py and assets/sonidos/CREDITS.md for the export and source.
-Usage, from the root of the repository:
-    python -I tool/sonidos_mesa.py
+Requires .NET SDK 8+ and the sibling fat-fish-game checkout. Credits are in
+assets/sonidos/CREDITS.md. Run from the repository root:
+    python3 -I tool/sonidos_mesa.py
 """
 
 import math
@@ -58,12 +50,6 @@ def filtrar(signal, kind, freq, q=0.7071):
         out.append(y)
         x2, x1, y2, y1 = x1, x, y1, y
     return out
-
-
-def bucle(signal, kind, freq, q=0.7071):
-    """Filters a noise buffer as if it repeated, so the loop has no click at the seam."""
-    doble = filtrar(signal + signal, kind, freq, q)
-    return doble[len(signal):]
 
 
 def decaer(n, desde, hasta, segundos):
@@ -111,29 +97,6 @@ def guardar(nombre, signal, gain=1):
     print(f'{ruta}: {os.path.getsize(ruta)} bytes')
 
 
-def rodado(freq):
-    n = 2 * RATE
-    return [x * 0.08 for x in bucle(noise(n), 'lowpass', freq)]
-
-
-# Tones of the clicks; the app plays the nearest one.
-TONOS = [3600, 3300, 3000, 2700, 1700]
-TOMAS = 3
-
-
-def caida():
-    n = int(0.25 * RATE)
-    fase, golpe = 0.0, []
-    gan = decaer(n, 0.22, 0.001, 0.2)
-    for i in range(n):
-        t = i / RATE
-        freq = 190 * (85 / 190) ** min(1, t / 0.12)
-        fase += freq / RATE
-        triangulo = 4 * abs(fase - math.floor(fase + 0.5)) - 1
-        golpe.append(triangulo * gan[i] if t < 0.22 else 0.0)
-    return sumar(golpe, clic(0.5, 2200))
-
-
 def encendido():
     n = int(0.75 * RATE)
     fase, sierra = 0.0, []
@@ -159,11 +122,6 @@ def encendido():
 if __name__ == '__main__':
     subprocess.run([sys.executable, '-I',
                     os.path.join(os.path.dirname(__file__), 'render_gamesynth.py')], check=True)
-    guardar('rodado_agudo.wav', rodado(380), gain=5)
-    guardar('rodado_grave.wav', rodado(180), gain=5)
-    for tono in TONOS:
-        for toma in range(1, TOMAS + 1):
-            # Full strength: the app scales each click by its own strength.
-            guardar(f'clic_{tono}_{toma}.wav', clic(1.0, tono), gain=3)
-    guardar('caida.wav', caida(), gain=1.5)
+    subprocess.run([sys.executable, '-I',
+                    os.path.join(os.path.dirname(__file__), 'import_roulette.py')], check=True)
     guardar('encendido.wav', encendido(), gain=3)

@@ -18,8 +18,25 @@ El WAV es mono, PCM de 16 bits a 22 050 Hz. Se ajusta su nivel con un pico máxi
 y se suaviza la unión del bucle durante 5 ms, conservando la duración de los compases.
 No contiene voces, grabaciones de pub ni música de terceros.
 
-## Efectos de mesa
+## Ruleta
 
-Rodado, clics, caída y encendido: síntesis original de Fat Fish basada en la receta de
-`sonido-mesa.ts` de la PWA. No contienen grabaciones de terceros. La misma herramienta
-genera los WAV y aplica la ganancia por familia.
+Grabaciones copiadas sin modificaciones desde
+`fat-fish-game/Assets/Resources/Audio/Roulette`, con `tool/import_roulette.py`:
+
+- `roll.wav`, `launch.wav`, `hit_01.wav` a `hit_14.wav`: recortes usados por el juego de
+  **roulette_casino_evian.aif**, f_ilippo, Casino de Evian.
+  Fuente: https://freesound.org/people/f_ilippo/sounds/59194/
+- `settle.wav`: **Casino_RouletteSound_ball-damping**, poenia.
+  Fuente: https://freesound.org/people/poenia/sounds/709623/
+
+Ambas fuentes se publican bajo **CC0 1.0**, según sus páginas de Freesound.
+Licencia: https://creativecommons.org/publicdomain/zero/1.0/
+
+La app aplica las ganancias relativas de `RouletteSound.cs` (rodado/golpes 0.6;
+lanzamiento 0.7×golpes; asentamiento 0.6×golpes), variación de tono en impactos y
+velocidad del rodado entre 0.7× y 1.3×. No sintetiza los sonidos de la ruleta.
+
+## Encendido de la lámpara
+
+Síntesis original de Fat Fish basada en `sonido-mesa.ts` de la PWA. Se regenera con
+`tool/sonidos_mesa.py`; no contiene grabaciones de terceros.

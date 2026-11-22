@@ -5,7 +5,7 @@ import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
-/// Calm GameSynth music and roulette effects based on the PWA (`sonido-mesa.ts`):
+/// Calm GameSynth music and the recorded roulette bank used by the game:
 /// the ball rolling and clicking on the frets, and its fall into the pocket.
 /// The background and the table sounds turn on apart; nothing plays until the player turns it on.
 abstract interface class TableSound {
@@ -21,8 +21,11 @@ abstract interface class TableSound {
   Future<void> pause();
   Future<void> resume();
 
-  /// The ball against a fret: [strength] from 0 to 1 and [tone] the center of the click in
-  /// Hz, from 3600 on the track down to 2700 among the pockets, 1700 for a bounce.
+  /// The croupier releasing the ball, once at the start of an animated spin.
+  void launch();
+
+  /// A recorded impact, with [strength] from 0 to 1. [tone] is the animation's
+  /// contact hint: 3600 for a light fret touch, 2700 for a full one, 1700 for wood.
   void click(double strength, {double tone = 3000});
 
   /// The rumble of the wheel under the ball: [speed] from 1 (just thrown) to 0, and
@@ -51,6 +54,8 @@ class SilentTableSound implements TableSound {
   @override
   Future<void> resume() async {}
   @override
+  void launch() {}
+  @override
   void click(double strength, {double tone = 3000}) {}
   @override
   void roll(double speed, double amongFrets) {}
@@ -62,7 +67,8 @@ class SilentTableSound implements TableSound {
   Future<void> dispose() async {}
 }
 
-/// [TableSound] with the WAV files of `assets/sonidos/`, made by `tool/sonidos_mesa.py`,
+/// [TableSound] with the WAV files of `assets/sonidos/`, including the game's
+/// original recordings in `roulette/`, imported by `tool/import_roulette.py`,
 /// played by SoLoud: a game audio engine whose loops have no seam and whose sounds start
 /// at once, so the clicks follow the ball and stop with it.
 class AudioTableSound implements TableSound {
@@ -70,9 +76,10 @@ class AudioTableSound implements TableSound {
 
   static const _folder = 'assets/sonidos';
 
-  /// Tones of the click files, in Hz; three takes of each.
-  static const _tones = [3600, 3300, 3000, 2700, 1700];
-  static const _takes = 3;
+  static const _hitCount = 14;
+  // Same relative gains as RouletteSound.cs in the game.
+  static const _rollGain = 0.6;
+  static const _hitGain = 0.6;
 
   /// Level of the ambience against the ball.
   static const _ambienceGain = 0.6;
@@ -83,15 +90,15 @@ class AudioTableSound implements TableSound {
   bool _loaded = false;
 
   AudioSource? _ambienceSource;
-  AudioSource? _rollHigh;
-  AudioSource? _rollLow;
+  AudioSource? _roll;
+  AudioSource? _launch;
   AudioSource? _fall;
   AudioSource? _switchOn;
-  final _clicks = <int, List<AudioSource>>{};
+  final _hits = <AudioSource>[];
+  int _lastHit = -1;
 
   SoundHandle? _ambience;
-  SoundHandle? _rollingHigh;
-  SoundHandle? _rollingLow;
+  SoundHandle? _rolling;
 
   bool _ambienceOn = false;
   bool _effectsOn = false;
@@ -161,8 +168,7 @@ class AudioTableSound implements TableSound {
 
   void _hold() {
     _ambience = null;
-    _rollingHigh = null;
-    _rollingLow = null;
+    _rolling = null;
     _safe(() {
       // Stop transient clicks, the fall and the lamp relay too, not just loops.
       if (_loaded) _soloud.stopAll();
@@ -175,37 +181,44 @@ class AudioTableSound implements TableSound {
   }
 
   @override
+  void launch() {
+    if (_effectsAudible) _safe(() => _play(_launch, 0.7 * _hitGain));
+  }
+
+  @override
   void click(double strength, {double tone = 3000}) {
     if (!_effectsAudible) return;
-    var nearest = _tones.first;
-    for (final t in _tones) {
-      if ((t - tone).abs() < (nearest - tone).abs()) nearest = t;
-    }
-    final takes = _clicks[nearest]!;
-    _safe(() => _play(takes[_random.nextInt(takes.length)], strength));
+    final index = _lastHit < 0
+        ? _random.nextInt(_hits.length)
+        : (_lastHit + 1 + _random.nextInt(_hits.length - 1)) % _hits.length;
+    _lastHit = index;
+    final force = strength.clamp(0.0, 1.0);
+    final wood = tone <= 1800;
+    final gain = wood ? 0.15 + 0.45 * force : 0.4 + 0.6 * force;
+    final pitch =
+        (0.96 + 0.1 * _random.nextDouble()) *
+        (wood ? 0.74 : (tone >= 3300 ? 1.04 : 1.0));
+    _safe(() => _play(_hits[index], gain * _hitGain, pitch: pitch));
   }
 
   @override
   void roll(double speed, double amongFrets) {
     if (!_effectsAudible) return;
     _safe(() {
-      _rollingHigh ??= _soloud.play(_rollHigh!, volume: 0, looping: true);
-      _rollingLow ??= _soloud.play(_rollLow!, volume: 0, looping: true);
-      // The PWA lowers a filter from 380 to 180 Hz as the ball slows: here the high and
-      // the low rumble trade places.
-      final level = speed * (1 - 0.5 * amongFrets);
-      const glide = Duration(milliseconds: 100);
+      _rolling ??= _soloud.play(_roll!, volume: 0, looping: true);
+      final pace = speed.clamp(0.0, 1.0);
+      final level = _rollGain * pace * (1 - 0.5 * amongFrets.clamp(0.0, 1.0));
+      // The original recording slows with the ball, as in RouletteSound.cs.
       _soloud
-        ..fadeVolume(_rollingHigh!, level * speed, glide)
-        ..fadeVolume(_rollingLow!, level * (1 - speed), glide);
+        ..setRelativePlaySpeed(_rolling!, 0.7 + 0.6 * pace)
+        ..fadeVolume(_rolling!, level, const Duration(milliseconds: 100));
     });
   }
 
   @override
   void stopRoll() {
-    final handles = <SoundHandle>[?_rollingHigh, ?_rollingLow];
-    _rollingHigh = null;
-    _rollingLow = null;
+    final handles = <SoundHandle>[?_rolling];
+    _rolling = null;
     _safe(() {
       for (final handle in handles) {
         _soloud
@@ -217,7 +230,7 @@ class AudioTableSound implements TableSound {
 
   @override
   void fall() {
-    if (_effectsAudible) _safe(() => _play(_fall, 1));
+    if (_effectsAudible) _safe(() => _play(_fall, 0.6 * _hitGain));
   }
 
   @override
@@ -260,15 +273,13 @@ class AudioTableSound implements TableSound {
     Future<AudioSource> load(String name) =>
         _soloud.loadAsset('$_folder/$name.wav');
     _ambienceSource = await load('ambiente');
-    _rollHigh = await load('rodado_agudo');
-    _rollLow = await load('rodado_grave');
-    _fall = await load('caida');
+    _roll = await load('roulette/roll');
+    _launch = await load('roulette/launch');
+    _fall = await load('roulette/settle');
     _switchOn = await load('encendido');
-    for (final tone in _tones) {
-      _clicks[tone] = [
-        for (var take = 1; take <= _takes; take++)
-          await load('clic_${tone}_$take'),
-      ];
+    _hits.clear();
+    for (var i = 1; i <= _hitCount; i++) {
+      _hits.add(await load('roulette/hit_${i.toString().padLeft(2, '0')}'));
     }
     _loaded = true;
   }
@@ -297,9 +308,14 @@ class AudioTableSound implements TableSound {
     }
   }
 
-  void _play(AudioSource? source, double strength) {
+  void _play(AudioSource? source, double strength, {double pitch = 1}) {
     if (source == null) return;
-    _soloud.play(source, volume: strength);
+    final handle = _soloud.play(source, volume: strength, paused: pitch != 1);
+    if (pitch != 1) {
+      _soloud
+        ..setRelativePlaySpeed(handle, pitch)
+        ..setPause(handle, false);
+    }
   }
 
   /// Sound is an extra: a failure is logged and the app goes on in silence.

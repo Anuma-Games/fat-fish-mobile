@@ -5,7 +5,7 @@
 - Emulador Android **Medium Phone**, Android **13**.
 - Volumen multimedia del sistema: **8 de 15**.
 - Volumen de la app: **6 de 10**, **10 de 10** y **0 de 10**.
-- Motor real SoLoud con los WAV empaquetados; captura PCM del mezclador a 22 050 Hz/mono.
+- Motor real SoLoud con los WAV empaquetados; captura PCM del mezclador a su frecuencia y canales nativos (44 100 Hz/estéreo).
 - La captura digital ocurre antes del volumen físico del dispositivo. Falta validar la percepción de
   volumen y el carácter del ambiente escuchándolo en un teléfono real.
 
@@ -14,19 +14,19 @@
 | Escenario | Resultado |
 |---|---|
 | Inicio con ambos canales apagados | El motor permanece sin inicializar; no reproduce audio. |
-| Ambiente, rodado, clics y caída al 60 % | Pico 0.25060; RMS 0.03404; audio presente. |
+| Ambiente, rodado, clics y caída al 60 % | Pico 0.22931; RMS 0.02795; audio presente. |
 | 16 clics simultáneos, caída y rodado al 100 % | Pico 0.891251, equivalente a −1 dBFS; limitador activo. |
 | Bajar el volumen maestro a cero durante la reproducción | Pico y RMS 0. |
 | Pedir clic, rodado y caída con volumen cero | Pico y RMS 0. |
 | Pausar y pedir efectos durante la pausa | Pico y RMS 0. |
-| Reanudar con ambiente activado | RMS 0.02134; recupera el ambiente. |
+| Reanudar con ambiente activado | RMS 0.02076; recupera el ambiente. |
 | Apagar ambos canales y pedir efectos | Pico y RMS 0. |
 
 Para medir silencio tras detener voces se dejó vaciar el búfer de salida durante 100 ms.
 Los valores corresponden al mezclador, sin grabación acústica por micrófono.
 
-Los 20 WAV son PCM de 16 bits, mono y 22 050 Hz, sin muestras saturadas y con picos individuales
-inferiores a 0.851. El fondo dura 44.651 segundos, conserva cuatro vueltas de la progresión de GameSynth y suaviza la
+Los 19 WAV son PCM de 16 bits, mono: música/encendido a 22 050 Hz y el banco de ruleta a 48 000 Hz.
+No contienen muestras saturadas; los picos del banco grabado no superan 0.901. El fondo dura 44.651 segundos, conserva cuatro vueltas de la progresión de GameSynth y suaviza la
 unión durante 5 ms. La primera y la última muestra PCM tienen el mismo valor (649), sin salto en la unión.
 
 ## Exportación de GameSynth
@@ -37,8 +37,20 @@ unión durante 5 ms. La primera y la última muestra PCM tienen el mismo valor (
 - .NET SDK 10.0.102; compilación del adaptador sin advertencias ni errores.
 - 984 558 muestras a 22 050 Hz; 86 BPM; semilla 184; amplitud máxima 0.59998 y RMS 0.08978.
 - SHA256 del WAV: `ec61c33b966315a6e3e914a4fec7a9ac8fcfa5cc8f4e9edaa5e913bf2a3b9bf8`.
-- Regenerar con `python3 -I tool/sonidos_mesa.py` produjo el mismo WAV y no alteró los efectos de la ruleta.
+- Repetir `python3 -I tool/render_gamesynth.py` produjo el mismo SHA256 del fondo musical.
 - No hay voces ni grabaciones de terceros. La fuente y el MP3 de pub dejaron de formar parte del repo.
+
+## Banco de ruleta
+
+- 17 archivos de `fat-fish-game/Assets/Resources/Audio/Roulette`, copiados sin modificar sus bytes.
+- Lanzamiento: `launch.wav`; un solo rodado `roll.wav`, que varía entre 0.7× y 1.3×.
+- Impactos: 14 tomas con variación leve de tono y sin repetir la última toma.
+- Los contactos discretos empiezan cuando la bola baja hacia las casillas (mitad del giro).
+- Los rebotes usan un tono más grave; el cierre usa `settle.wav`.
+- El modo de movimiento reducido reproduce únicamente el asentamiento; no lanza ni rueda.
+- Se eliminaron los 18 WAV sintéticos de rodado/clics/caída de la app.
+
+Captura de un giro de la pantalla Mesa: 6.548 s a 44 100 Hz, estéreo; pico 0.38504 y RMS 0.02103 con efectos al 80 %, sin música para escuchar la ruleta aislada.
 
 ## Comprobaciones del proyecto
 
