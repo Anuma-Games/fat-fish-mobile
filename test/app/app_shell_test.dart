@@ -114,7 +114,7 @@ void main() {
 
     await tester.tap(find.text('Ver el ranking mundial'));
     await tester.pumpAndSettle();
-    expect(find.text('Mejores puntajes'), findsOneWidget);
+    expect(find.text('Las mejores partidas'), findsOneWidget);
 
     // The dossier needs a player: its tab leads back to the welcome.
     await tester.tap(tab('Expediente'));
@@ -177,7 +177,7 @@ void main() {
     await tester.dragFrom(from, to - from);
     await tester.pumpAndSettle();
     expect(open(), 2);
-    expect(find.text('Mejores puntajes'), findsOneWidget);
+    expect(find.text('Las mejores partidas'), findsOneWidget);
   });
 
   testWidgets('the speaker and the gear of the top bar, remembered on reopen', (
@@ -258,7 +258,7 @@ void main() {
         .opacity;
     expect(blurOpacity(), 0);
 
-    await tester.drag(find.text('Mejores puntajes'), const Offset(0, -300));
+    await tester.drag(find.text('Las mejores partidas'), const Offset(0, -300));
     await tester.pumpAndSettle();
     expect(barOffset(), const Offset(0, 1));
     // The blur takes the place of the top bar behind the status bar.

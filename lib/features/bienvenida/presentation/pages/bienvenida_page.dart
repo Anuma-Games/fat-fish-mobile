@@ -182,7 +182,7 @@ class _BienvenidaPageState extends State<BienvenidaPage>
                   ),
                   const SizedBox(height: FatFishSpacing.s3),
                   Text(
-                    'No necesitas cuenta ni contraseña. '
+                    'Tu expediente, sin iniciar sesión. '
                     'Todo el dinero del juego es ficticio.',
                     textAlign: TextAlign.center,
                     style: textTheme.bodySmall?.copyWith(fontSize: 12),

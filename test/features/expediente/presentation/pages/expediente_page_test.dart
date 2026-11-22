@@ -158,7 +158,10 @@ void main() {
 
     expect(find.text('Cada partida, anotada'), findsOneWidget);
     expect(round(11), findsOneWidget);
-    expect(find.text(r'de $300'), findsOneWidget);
+    expect(find.text(r'+$600'), findsOneWidget);
+    expect(find.text('De la más reciente a la más antigua.'), findsOneWidget);
+    expect(find.text(r'de $300'), findsNothing);
+    expect(find.text('1,200 pts'), findsOneWidget);
     await tester.tap(find.text('Ver más partidas'));
     await tester.pumpAndSettle();
 
@@ -270,6 +273,7 @@ void main() {
     await pumpPage(tester, page: const HistorialPage());
 
     expect(find.text('SIN CONEXIÓN'), findsOneWidget);
+    expect(find.text(r'+$600'), findsOneWidget);
     expect(
       find.textContaining('3 de noviembre, 2026, a las 18:42'),
       findsOneWidget,

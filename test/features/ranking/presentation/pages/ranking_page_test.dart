@@ -1,3 +1,6 @@
+import 'package:fat_fish_mobile/app/theme/app_theme.dart';
+import 'package:fat_fish_mobile/core/theme/tokens.dart';
+import 'package:fat_fish_mobile/core/presentation/widgets/paper.dart';
 import 'package:fat_fish_mobile/features/jugador/domain/entities/player_summary.dart';
 import 'package:fat_fish_mobile/features/jugador/domain/repositories/player_repository.dart';
 import 'package:fat_fish_mobile/features/jugador/domain/usecases/clear_my_player.dart';
@@ -58,7 +61,10 @@ void main() {
             saveMyPlayer: SaveMyPlayer(players),
             clearMyPlayer: ClearMyPlayer(players),
           )..load(),
-          child: const MaterialApp(home: RankingPage()),
+          child: MaterialApp(
+            theme: buildFatFishTheme(),
+            home: const RankingPage(),
+          ),
         ),
       ),
     );
@@ -77,8 +83,8 @@ void main() {
 
     await pumpPage(tester);
 
-    expect(find.text('Mejores puntajes'), findsOneWidget);
-    expect(find.text('Tu mejor partida'), findsOneWidget);
+    expect(find.text('Las mejores partidas'), findsOneWidget);
+    expect(find.text('Tu mejor victoria'), findsOneWidget);
     expect(find.text('pezgordo'), findsOneWidget);
     expect(find.text('27'), findsOneWidget);
     final podium = find.byType(Podium);
@@ -111,7 +117,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(Podium), findsNothing);
-    expect(find.text('Tu mejor partida'), findsNothing);
+    expect(find.text('Tu mejor victoria'), findsNothing);
     expect(row(11), findsOneWidget);
   });
 
@@ -121,7 +127,48 @@ void main() {
 
     await pumpPage(tester);
 
-    expect(find.text('Gana una partida para entrar'), findsOneWidget);
+    expect(find.text('Gana una partida para entrar.'), findsOneWidget);
+  });
+
+  testWidgets('explains points on demand without changing the ranking', (
+    tester,
+  ) async {
+    when(() => ranking.getRanking(page: 0, playerId: '1042'))
+        .thenAnswer((_) async => page(0, mine: entry(27)));
+
+    tester.view.physicalSize = const Size(360, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await pumpPage(tester);
+
+    final explanation = find.textContaining('no se suman tus partidas');
+    expect(explanation, findsNothing);
+    await tester.tap(find.byTooltip('Cómo funciona el ranking'));
+    await tester.pumpAndSettle();
+    expect(explanation, findsOneWidget);
+    final dialog = find.byType(Dialog);
+    expect(
+      find.descendant(of: dialog, matching: find.byType(RuledPaper)),
+      findsOneWidget,
+    );
+    final content = tester.widget<Text>(explanation);
+    expect(content.style?.fontFamily, 'Jersey15');
+    expect(content.style?.fontSize, 20);
+    expect(content.style?.color, FatFishColors.ink900);
+    final title = tester.widget<Text>(find.text('¿Cómo subir posiciones?'));
+    expect(title.style?.fontFamily, FatFishFonts.display);
+    expect(find.text('NOTA DE LA CASA'), findsOneWidget);
+    expect(
+      find.descendant(of: dialog, matching: find.text('RANKING')),
+      findsOneWidget,
+    );
+    expect(title.style?.color, FatFishColors.ink900);
+    await tester.tap(find.text('Entendido'));
+    await tester.pumpAndSettle();
+    expect(explanation, findsNothing);
+    expect(find.text('Tu mejor victoria'), findsOneWidget);
+    verify(() => ranking.getRanking(page: 0, playerId: '1042')).called(1);
   });
 
   testWidgets('without a saved player there is no place card', (tester) async {
@@ -131,7 +178,7 @@ void main() {
     await pumpPage(tester);
 
     expect(find.byType(Podium), findsOneWidget);
-    expect(find.text('Tu mejor partida'), findsNothing);
-    expect(find.text('Gana una partida para entrar'), findsNothing);
+    expect(find.text('Tu mejor victoria'), findsNothing);
+    expect(find.text('Gana una partida para entrar.'), findsNothing);
   });
 }
