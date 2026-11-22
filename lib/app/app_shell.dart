@@ -32,26 +32,34 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  static const _sectionHistoryLimit = 5;
   final _barsVisible = ValueNotifier(true);
+  final _sectionHistory = <int>[];
+  int? _backTarget;
   int? _swipeFrom;
+  bool _swipeBack = false;
   double _swipeDistance = 0;
 
   void _cancelSectionSwipe() {
     _swipeFrom = null;
+    _swipeBack = false;
     _swipeDistance = 0;
   }
 
   void _startSectionSwipe(DragStartDetails details) {
     _cancelSectionSwipe();
     // Stacked pages keep their platform back gesture instead of switching tabs.
-    if (!GoRouter.of(context).canPop()) {
+    if (_backTarget == null && !GoRouter.of(context).canPop()) {
       _swipeFrom = widget.navigationShell.currentIndex;
+      // Reserve the edge for history; ordinary content swipes keep tab order.
+      _swipeBack = details.localPosition.dx <= 24;
     }
   }
 
   void _endSectionSwipe(DragEndDetails details) {
     final from = _swipeFrom;
     final distance = _swipeDistance;
+    final back = _swipeBack;
     _cancelSectionSwipe();
     if (from == null ||
         from != widget.navigationShell.currentIndex ||
@@ -59,6 +67,12 @@ class _AppShellState extends State<AppShell> {
       return;
     }
     final velocity = details.primaryVelocity ?? 0;
+    if (back) {
+      if (distance >= 64 || (distance >= 24 && velocity >= 600)) {
+        _returnToPreviousSection();
+      }
+      return;
+    }
     final dragged = distance.abs() >= 64;
     final flicked = distance.abs() >= 24 && velocity.abs() >= 600;
     if (!dragged && !flicked) return;
@@ -73,8 +87,28 @@ class _AppShellState extends State<AppShell> {
   void didUpdateWidget(AppShell oldWidget) {
     super.didUpdateWidget(oldWidget);
     _cancelSectionSwipe();
+    final previous = oldWidget.navigationShell.currentIndex;
+    final current = widget.navigationShell.currentIndex;
+    if (previous != current) {
+      // Returning consumes history; it must not create a loop back to itself.
+      if (current != _backTarget) {
+        _sectionHistory.add(previous);
+        if (_sectionHistory.length > _sectionHistoryLimit) {
+          _sectionHistory.removeAt(0);
+        }
+      }
+      _backTarget = null;
+    }
     // A new tab, or a new screen in the same tab, starts with both bars.
     _barsVisible.value = true;
+  }
+
+  void _returnToPreviousSection() {
+    if (_backTarget != null || _sectionHistory.isEmpty) return;
+    final target = _sectionHistory.removeLast();
+    setState(() => _backTarget = target);
+    Haptics.light(context);
+    _openTab(target);
   }
 
   @override
@@ -121,11 +155,14 @@ class _AppShellState extends State<AppShell> {
     return false;
   }
 
-  void _openTab(int index) => widget.navigationShell.goBranch(
-    index,
-    // Tapping the open tab again returns it to its first screen.
-    initialLocation: index == widget.navigationShell.currentIndex,
-  );
+  void _openTab(int index) {
+    if (_backTarget != null && index != _backTarget) return;
+    widget.navigationShell.goBranch(
+      index,
+      // Tapping the open tab again returns it to its first screen.
+      initialLocation: index == widget.navigationShell.currentIndex,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,31 +173,41 @@ class _AppShellState extends State<AppShell> {
     return NavigatorPopHandler<Object?>(
       onPopWithResult: (result) {
         final router = GoRouter.of(context);
-        if (router.canPop()) router.pop(result);
+        if (_backTarget != null) return;
+        if (router.canPop()) {
+          router.pop(result);
+        } else {
+          _returnToPreviousSection();
+        }
       },
-      child: BarsVisibility(
-        visible: _barsVisible,
-        child: Stack(
-          children: [
-            _scaffold(duration),
-            // Once the top bar hides, the content passes under the clock: the blur
-            // takes the place of the bar, and fades out when the bar comes back.
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              child: ValueListenableBuilder(
-                valueListenable: _barsVisible,
-                builder: (context, visible, child) => AnimatedOpacity(
-                  opacity: visible ? 0 : 1,
-                  duration: duration,
-                  curve: FatFishMotion.curve,
-                  child: child,
+      child: PopScope<Object?>(
+        // Register native Android back even when only section history remains.
+        // NavigatorPopHandler above is the sole handler for a blocked root pop.
+        canPop: _sectionHistory.isEmpty && _backTarget == null,
+        child: BarsVisibility(
+          visible: _barsVisible,
+          child: Stack(
+            children: [
+              _scaffold(duration),
+              // Once the top bar hides, the content passes under the clock: the blur
+              // takes the place of the bar, and fades out when the bar comes back.
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                child: ValueListenableBuilder(
+                  valueListenable: _barsVisible,
+                  builder: (context, visible, child) => AnimatedOpacity(
+                    opacity: visible ? 0 : 1,
+                    duration: duration,
+                    curve: FatFishMotion.curve,
+                    child: child,
+                  ),
+                  child: const StatusBarBlur(),
                 ),
-                child: const StatusBarBlur(),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
