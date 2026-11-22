@@ -1,18 +1,22 @@
 # Créditos de audio
 
-## Ambiente de trastienda
+## Música instrumental
 
-Base: **Quiet Bar.wav**, alexftw123 (25 de abril de 2012).
-Fuente: https://freesound.org/people/alexftw123/sounds/152663/
-Licencia indicada por el autor: **Creative Commons Zero 1.0 (CC0)**.
-Texto de la licencia: https://creativecommons.org/publicdomain/zero/1.0/
+Música original de Fat Fish, generada por `GameSynth.cs` de Anuma Games.
+Fuente: `fat-fish-game/Assets/Scripts/Audio/GameSynth.cs`.
 
-El original de trabajo es la preescucha de alta calidad ofrecida por Freesound,
-conservada en `tool/audio/quiet_bar.mp3`.
+Exportación: `tool/render_gamesynth.py` ejecuta el callback original con un adaptador C#
+(`tool/audio/RenderGameSynth.cs`), sin abrir Unity ni modificar el repositorio del juego.
 
-Adaptación para Fat Fish: conversión a mono/22 050 Hz, filtrado para amortiguar las voces,
-compresión suave, ajuste de nivel, crujidos de madera sintetizados y fundido cruzado
-para reproducirlo en bucle. Generada con `tool/sonidos_mesa.py`.
+Configuración: tensión 0, sin jefe ni efectos de ruleta, 86 BPM, swing 0.64,
+progresión Am7–Dm7–Bbmaj7–E7(b9), bajo caminante, acordes, escobillas y vibráfono.
+Semilla 184 para que los acentos musicales sean reproducibles. Cuatro vueltas de cuatro
+compases (44.651 s), con una pasada de los mismos 16 compases para estabilizar las colas
+y el volumen antes de la captura.
+
+El WAV es mono, PCM de 16 bits a 22 050 Hz. Se ajusta su nivel con un pico máximo de 0.60
+y se suaviza la unión del bucle durante 5 ms, conservando la duración de los compases.
+No contiene voces, grabaciones de pub ni música de terceros.
 
 ## Efectos de mesa
 

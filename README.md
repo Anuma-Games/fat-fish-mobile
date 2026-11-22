@@ -185,12 +185,18 @@ de la barra superior y guarda en el teléfono el ambiente de fondo, los sonidos 
 vibración; la bocina de la barra enciende y apaga el ambiente. El sonido empieza apagado, se pausa cuando la app pasa a segundo plano y, con "reducir
 movimiento", la ruleta da el resultado sin animación.
 
-El fondo es una trastienda con voces amortiguadas, vasos y crujidos discretos, basado en **Quiet Bar.wav** de
-alexftw123 (CC0). El original y los créditos están en `tool/audio/quiet_bar.mp3` y `assets/sonidos/CREDITS.md`.
-El ambiente se repite con un fundido cruzado de 3 segundos, sin el zumbido sintético anterior.
+El fondo es una exportación instrumental de `GameSynth.cs`, el sintetizador de la mesa del juego:
+jazz nocturno a 86 BPM, con bajo caminante, acordes con swing, escobillas y vibráfono. Usa la versión tranquila
+(tensión 0, sin jefe), sin conversaciones ni grabaciones de bares. El bucle dura 44.651 segundos, cuatro vueltas
+de la progresión Am7–Dm7–Bbmaj7–E7(b9).
+
+Para exportar solo la música: `python3 -I tool/render_gamesynth.py`. Requiere .NET SDK 8+ y el repositorio
+hermano `fat-fish-game`; se puede indicar otra ruta con `--source /ruta/GameSynth.cs`. Se ejecuta el callback
+C# original con un adaptador mínimo, sin abrir Unity ni modificar el juego. Los créditos están en
+`assets/sonidos/CREDITS.md`.
 
 Los efectos de la ruleta siguen la receta de `sonido-mesa.ts` de la PWA. Se regeneran, junto con el ambiente,
-con `python3 -I tool/sonidos_mesa.py` (requiere `ffmpeg`, o `afconvert` en macOS). La ganancia se ajusta por familia:
+con `python3 -I tool/sonidos_mesa.py` (requiere .NET SDK 8+ y el código del juego). La ganancia se ajusta por familia:
 rodado ×5, clics y encendido ×3, caída ×1.5. SoLoud (`flutter_soloud`) aplica los 10 niveles guardados como volumen
 maestro, también a los sonidos en curso, y limita los picos de la mezcla a −1 dBFS. Al pasar a segundo plano se
 detienen todos los sonidos, incluidos los efectos cortos; al volver se recupera el ambiente si estaba activado.

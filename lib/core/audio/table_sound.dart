@@ -5,10 +5,9 @@ import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
-/// Sound of the room and the roulette, the same as the landing of the PWA (`sonido-mesa.ts`):
-/// the room tone and the lamp hum, the ball rolling and clicking on the frets, and its fall
-/// into the pocket. The ambience and the table sounds turn on apart; nothing plays until the
-/// player turns it on.
+/// Calm GameSynth music and roulette effects based on the PWA (`sonido-mesa.ts`):
+/// the ball rolling and clicking on the frets, and its fall into the pocket.
+/// The background and the table sounds turn on apart; nothing plays until the player turns it on.
 abstract interface class TableSound {
   /// Turns the background [ambience] and the [effects] of the table on or off and sets
   /// their level, from 0 to 1.
