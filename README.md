@@ -189,6 +189,14 @@ Los sonidos de la mesa son los de `sonido-mesa.ts` de la PWA (ambiente del cuart
 bola y su caída), grabados como WAV en `assets/sonidos/` con `python3 -I tool/sonidos_mesa.py`. Los reproduce SoLoud (`flutter_soloud`),
 un motor de audio para juegos: el ambiente se repite sin cortes y los clics suenan al instante.
 
+El retroceso de las pantallas apiladas usa las rutas de plataforma: arrastre desde el borde
+izquierdo en iOS (se puede cancelar), y gesto/botón Atrás en Android. Ajustes, búsqueda e
+historial vuelven a la pantalla anterior conservando el jugador. Las fichas inferiores
+conservan sus propias rutas; el retroceso no cambia entre pestañas raíz. Desde el contenido
+de una sección raíz, un swipe a la izquierda abre la siguiente ficha y a la derecha la anterior,
+sin volver del último extremo al primero. Las pantallas apiladas conservan su gesto de retroceso.
+Inventario y prueba en iPhone: [`FF-188-retroceso.md`](docs/qa/FF-188-retroceso.md).
+
 El ícono de la app sale de `assets/icon/` y se regenera con `dart run flutter_launcher_icons`.
 
 ## 8. Integración continua y flujo de trabajo

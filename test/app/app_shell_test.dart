@@ -8,8 +8,13 @@ import 'package:fat_fish_mobile/core/network/api_client.dart';
 import 'package:fat_fish_mobile/core/network/api_exception.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/status_bar_blur.dart';
 import 'package:fat_fish_mobile/core/storage/app_database.dart';
+import 'package:fat_fish_mobile/features/ajustes/presentation/pages/ajustes_page.dart';
+import 'package:fat_fish_mobile/features/expediente/presentation/pages/expediente_page.dart';
+import 'package:fat_fish_mobile/features/expediente/presentation/pages/historial_page.dart';
+import 'package:fat_fish_mobile/features/jugador/presentation/pages/jugador_page.dart';
 import 'package:fat_fish_mobile/features/ranking/presentation/pages/ranking_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -339,6 +344,197 @@ void main() {
     expect(find.text('Cada partida, anotada'), findsNothing);
     expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
   });
+
+  Future<void> iosSwipe(
+    WidgetTester tester,
+    Finder page, {
+    bool cancel = false,
+  }) async {
+    final route = ModalRoute.of(tester.element(page))!;
+    expect(route.popGestureEnabled, isTrue);
+    final width = tester.view.physicalSize.width / tester.view.devicePixelRatio;
+    final gesture = await tester.startGesture(const Offset(1, 200));
+    await gesture.moveBy(const Offset(24, 0));
+    await tester.pump(const Duration(milliseconds: 16));
+    await gesture.moveBy(Offset(width * (cancel ? 0.15 : 0.8), 0));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(route.navigator!.userGestureInProgress, isTrue);
+    // Release without a fling when testing cancellation.
+    if (cancel) await tester.pump(const Duration(milliseconds: 600));
+    await gesture.up();
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets(
+    'iOS edge back completes and cancels settings without losing the player',
+    (tester) async {
+      final db = await pumpApp(tester, player: true);
+      await tester.tap(find.byTooltip('Ajustes'));
+      await tester.pumpAndSettle();
+      await iosSwipe(tester, find.byType(AjustesPage), cancel: true);
+      expect(find.byType(AjustesPage), findsOneWidget);
+      await iosSwipe(tester, find.byType(AjustesPage));
+      expect(find.byType(AjustesPage), findsNothing);
+      expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
+      expect((await db.select(db.myPlayers).getSingle()).playerId, '70');
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'iOS edge back cancels and completes player search without changing selection',
+    (tester) async {
+      final db = await pumpApp(tester, player: true);
+      await tester.tap(find.text('Cambiar'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'don');
+      await tester.pump(const Duration(milliseconds: 400));
+      await iosSwipe(tester, find.byType(JugadorPage), cancel: true);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'don',
+      );
+      await iosSwipe(tester, find.byType(JugadorPage));
+      expect(find.byType(JugadorPage), findsNothing);
+      expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
+      expect((await db.select(db.myPlayers).getSingle()).playerId, '70');
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets('iOS edge back returns from nested history', (tester) async {
+    final db = await pumpApp(tester, player: true);
+    await tester.scrollUntilVisible(find.text('Ver la partida'), 200);
+    await tester.tap(find.text('Ver la partida'));
+    await tester.pumpAndSettle();
+    expect(find.byType(HistorialPage), findsOneWidget);
+    await iosSwipe(tester, find.byType(HistorialPage), cancel: true);
+    expect(find.byType(HistorialPage), findsOneWidget);
+    await iosSwipe(tester, find.byType(HistorialPage));
+    expect(find.byType(HistorialPage), findsNothing);
+    expect((await db.select(db.myPlayers).getSingle()).playerId, '70');
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+  testWidgets(
+    'Android back closes settings, search and nested history in order',
+    (tester) async {
+      final db = await pumpApp(tester, player: true);
+      await tester.scrollUntilVisible(find.text('Ver la partida'), 200);
+      final dossierScroll = Scrollable.of(tester.element(find.text('Cambiar')))
+          .position;
+      final savedOffset = dossierScroll.pixels;
+      await tester.tap(find.text('Ver la partida'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Ajustes'));
+      await tester.pumpAndSettle();
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(AjustesPage), findsNothing);
+      expect(find.byType(HistorialPage), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(HistorialPage), findsNothing);
+      expect(dossierScroll.pixels, savedOffset);
+      dossierScroll.jumpTo(0);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cambiar'));
+      await tester.pumpAndSettle();
+      expect(find.byType(JugadorPage), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(JugadorPage), findsNothing);
+      expect((await db.select(db.myPlayers).getSingle()).playerId, '70');
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets('iOS does not back-swipe between root tabs', (tester) async {
+    final db = await pumpApp(tester, player: true);
+    final route = ModalRoute.of(tester.element(find.byType(ExpedientePage)))!;
+    expect(route.popGestureEnabled, isFalse);
+    await tester.dragFrom(const Offset(1, 200), const Offset(650, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
+    expect(
+      tester.widget<FatFishNavBar>(find.byType(FatFishNavBar)).currentIndex,
+      0,
+    );
+    expect((await db.select(db.myPlayers).getSingle()).playerId, '70');
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+  testWidgets('Android back at a root tab leaves hidden history intact', (
+    tester,
+  ) async {
+    var exits = 0;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'SystemNavigator.pop') exits++;
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    final db = await pumpApp(tester, player: true);
+    await tester.scrollUntilVisible(find.text('Ver la partida'), 200);
+    await tester.tap(find.text('Ver la partida'));
+    await tester.pumpAndSettle();
+    await tester.tap(tab('Ranking'));
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(
+      exits,
+      1,
+    ); // Let Android handle leaving the root; don't pop another tab.
+    expect(
+      tester.widget<FatFishNavBar>(find.byType(FatFishNavBar)).currentIndex,
+      2,
+    );
+    await tester.tap(tab('Expediente'));
+    await tester.pumpAndSettle();
+    expect(find.byType(HistorialPage), findsOneWidget);
+    expect((await db.select(db.myPlayers).getSingle()).playerId, '70');
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+
+  testWidgets(
+    'Android keeps native back registered after closing settings over history',
+    (tester) async {
+      final handlesBack = <bool>[];
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'SystemNavigator.setFrameworkHandlesBack') {
+            handlesBack.add(call.arguments as bool);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      await pumpApp(tester, player: true);
+      await tester.scrollUntilVisible(find.text('Ver la partida'), 200);
+      await tester.tap(find.text('Ver la partida'));
+      await tester.pumpAndSettle();
+      expect(handlesBack.last, isTrue);
+      await tester.tap(find.byTooltip('Ajustes'));
+      await tester.pumpAndSettle();
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(HistorialPage), findsOneWidget);
+      expect(handlesBack.last, isTrue); // There is still an inner page to pop.
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
 
   testWidgets('without connection it shows the last saved dossier and ranking', (
     tester,
