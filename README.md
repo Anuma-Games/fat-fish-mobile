@@ -189,6 +189,12 @@ Los sonidos de la mesa son los de `sonido-mesa.ts` de la PWA (ambiente del cuart
 bola y su caída), grabados como WAV en `assets/sonidos/` con `python3 -I tool/sonidos_mesa.py`. Los reproduce SoLoud (`flutter_soloud`),
 un motor de audio para juegos: el ambiente se repite sin cortes y los clics suenan al instante.
 
+La barra inferior reproduce una ficha del juego al confirmar otra sección por toque o al soltar
+un gesto. Tocar la sección activa, previsualizar otra ficha o cancelar el gesto no cambia la sección
+ni añade sonido. La ficha respeta **Sonidos de la mesa**, el volumen y la pausa de la app.
+Se exporta desde `GameSynth.cs` con `python3 -I tool/render_navigation_chip.py` (.NET SDK 8+ y
+el checkout hermano del juego); receta y créditos en [`NAVEGACION.md`](assets/sonidos/NAVEGACION.md).
+
 El ícono de la app sale de `assets/icon/` y se regenera con `dart run flutter_launcher_icons`.
 
 ## 8. Integración continua y flujo de trabajo
