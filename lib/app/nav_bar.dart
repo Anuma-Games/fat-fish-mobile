@@ -53,11 +53,7 @@ class _FatFishNavBarState extends State<FatFishNavBar> {
   }
 
   void _select(int index) {
-    if (index == widget.currentIndex) {
-      // Tapping the open tab again still returns it to its first screen.
-      widget.onSelect(index);
-      return;
-    }
+    if (index == widget.currentIndex) return;
     Haptics.light(context);
     widget.onSelect(index);
   }
@@ -75,6 +71,10 @@ class _FatFishNavBarState extends State<FatFishNavBar> {
     if (index != null && index != widget.currentIndex) _select(index);
   }
 
+  void _cancelDrag() {
+    if (_dragIndex != null) setState(() => _dragIndex = null);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.paddingOf(context).bottom;
@@ -83,46 +83,52 @@ class _FatFishNavBarState extends State<FatFishNavBar> {
     return SizedBox(
       height: FatFishNavBar.height + bottom,
       child: LayoutBuilder(
-        builder: (context, constraints) => GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onHorizontalDragStart: (details) =>
-              _dragTo(details.localPosition.dx, constraints.maxWidth),
-          onHorizontalDragUpdate: (details) =>
-              _dragTo(details.localPosition.dx, constraints.maxWidth),
-          onHorizontalDragEnd: (_) => _endDrag(),
-          onHorizontalDragCancel: () => setState(() => _dragIndex = null),
-          child: Stack(
-            children: [
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: FatFishNavBar.stripHeight + bottom,
-                child: ColoredBox(
-                  color: FatFishColors.bg900.withValues(alpha: 0.94),
+        builder: (context, constraints) => Listener(
+          // A recognized horizontal drag reports onEnd even after pointer cancel.
+          // Clear its preview first so cancellation cannot commit a section change.
+          onPointerCancel: (_) => _cancelDrag(),
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragStart: (details) =>
+                _dragTo(details.localPosition.dx, constraints.maxWidth),
+            onHorizontalDragUpdate: (details) =>
+                _dragTo(details.localPosition.dx, constraints.maxWidth),
+            onHorizontalDragEnd: (_) => _endDrag(),
+            onHorizontalDragCancel: _cancelDrag,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: FatFishNavBar.stripHeight + bottom,
+                  child: ColoredBox(
+                    color: FatFishColors.bg900.withValues(alpha: 0.94),
+                  ),
                 ),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 10 + bottom,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    for (final (index, tab) in widget.tabs.indexed) ...[
-                      if (index > 0) const SizedBox(width: FatFishNavBar._gap),
-                      _Tab(
-                        tab: tab,
-                        active: index == active,
-                        selected: index == widget.currentIndex,
-                        onTap: () => _select(index),
-                      ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 10 + bottom,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (final (index, tab) in widget.tabs.indexed) ...[
+                        if (index > 0)
+                          const SizedBox(width: FatFishNavBar._gap),
+                        _Tab(
+                          tab: tab,
+                          active: index == active,
+                          selected: index == widget.currentIndex,
+                          onTap: () => _select(index),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

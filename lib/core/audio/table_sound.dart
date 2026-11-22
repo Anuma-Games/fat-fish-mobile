@@ -22,6 +22,9 @@ abstract interface class TableSound {
   Future<void> pause();
   Future<void> resume();
 
+  /// One chip on the felt, for a confirmed change of navigation section.
+  void navigationChip();
+
   /// The ball against a fret: [strength] from 0 to 1 and [tone] the center of the click in
   /// Hz, from 3600 on the track down to 2700 among the pockets, 1700 for a bounce.
   void click(double strength, {double tone = 3000});
@@ -51,6 +54,8 @@ class SilentTableSound implements TableSound {
   Future<void> pause() async {}
   @override
   Future<void> resume() async {}
+  @override
+  void navigationChip() {}
   @override
   void click(double strength, {double tone = 3000}) {}
   @override
@@ -88,6 +93,9 @@ class AudioTableSound implements TableSound {
   AudioSource? _rollLow;
   AudioSource? _fall;
   AudioSource? _switchOn;
+  AudioSource? _navigationSource;
+  SoundHandle? _navigationHandle;
+  static const _navigationGain = 1.0;
   final _clicks = <int, List<AudioSource>>{};
 
   SoundHandle? _ambience;
@@ -117,7 +125,8 @@ class AudioTableSound implements TableSound {
     final turnedOn = ambience && !_ambienceOn;
     _ambienceOn = ambience;
     _effectsOn = effects;
-    _volume = volume;
+    _volume = volume.clamp(0.0, 1.0);
+    _updateNavigation();
     if (!effects) stopRoll();
     if (ambience || effects) {
       await _safeAsync(_prepare);
@@ -154,6 +163,7 @@ class AudioTableSound implements TableSound {
   }
 
   void _hold() {
+    _stopNavigation();
     stopRoll();
     _safe(() {
       final handle = _ambience;
@@ -170,6 +180,38 @@ class AudioTableSound implements TableSound {
       }
       _applyAmbience();
     });
+  }
+
+  @override
+  void navigationChip() {
+    if (!_effectsAudible || _volume <= 0) return;
+    _safe(() {
+      _stopNavigation();
+      _navigationHandle = _soloud.play(
+        _navigationSource!,
+        volume: _volume * _navigationGain,
+      );
+    });
+  }
+
+  // Keep this short one-shot in step with live volume/mute changes too.
+  void _updateNavigation() {
+    if (!_effectsAudible || _volume <= 0) {
+      _stopNavigation();
+      return;
+    }
+    _safe(() {
+      final handle = _navigationHandle;
+      if (handle != null && _soloud.getIsValidVoiceHandle(handle)) {
+        _soloud.setVolume(handle, _volume * _navigationGain);
+      }
+    });
+  }
+
+  void _stopNavigation() {
+    final handle = _navigationHandle;
+    _navigationHandle = null;
+    if (handle != null) _safe(() => _soloud.stop(handle));
   }
 
   @override
@@ -256,6 +298,7 @@ class AudioTableSound implements TableSound {
     _rollLow = await load('rodado_grave');
     _fall = await load('caida');
     _switchOn = await load('encendido');
+    _navigationSource = await load('navegacion');
     for (final tone in _tones) {
       _clicks[tone] = [
         for (var take = 1; take <= _takes; take++)
