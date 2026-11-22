@@ -266,7 +266,7 @@ class _About extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             textStyle: const TextStyle(
               fontFamily: FatFishFonts.body,
-              fontSize: 15,
+              fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
           ),

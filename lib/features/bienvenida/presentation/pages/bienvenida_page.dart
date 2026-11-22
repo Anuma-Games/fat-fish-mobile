@@ -202,7 +202,7 @@ class _BienvenidaPageState extends State<BienvenidaPage>
                             'No necesitas cuenta ni contraseña. '
                             'Todo el dinero del juego es ficticio.',
                             textAlign: TextAlign.center,
-                            style: textTheme.bodySmall?.copyWith(fontSize: 12),
+                            style: textTheme.bodySmall,
                           ),
                         ],
                       ),

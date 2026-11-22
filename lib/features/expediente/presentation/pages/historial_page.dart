@@ -102,7 +102,7 @@ class _History extends StatelessWidget {
                 player.alias,
                 style: const TextStyle(
                   fontFamily: FatFishFonts.body,
-                  fontSize: 14,
+                  fontSize: 17,
                   fontWeight: FontWeight.w600,
                   color: FatFishColors.cream100,
                 ),

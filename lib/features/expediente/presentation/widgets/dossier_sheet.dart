@@ -164,7 +164,7 @@ class _ChangeButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: FatFishSpacing.s1),
         textStyle: const TextStyle(
           fontFamily: FatFishFonts.body,
-          fontSize: 14,
+          fontSize: 17,
           fontWeight: FontWeight.w600,
         ),
       ),
