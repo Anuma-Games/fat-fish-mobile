@@ -92,7 +92,7 @@ class _BienvenidaPageState extends State<BienvenidaPage>
             Padding(
               padding: EdgeInsets.fromLTRB(
                 FatFishSpacing.s6,
-                padding.top + 80,
+                padding.top + 48,
                 FatFishSpacing.s6,
                 padding.bottom + 28,
               ),
