@@ -49,8 +49,12 @@ class DossierSheet extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _SheetTab('EXPEDIENTE N.º ${profile.id}'),
-              const Spacer(),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: _SheetTab('EXPEDIENTE N.º ${profile.id}'),
+                ),
+              ),
               if (onChangePlayer case final onChangePlayer?)
                 _ChangeButton(onPressed: onChangePlayer),
             ],

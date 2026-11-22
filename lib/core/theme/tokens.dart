@@ -97,8 +97,8 @@ abstract final class FatFishFonts {
   /// "CONEXIóN". Its accents rise above the line, like in the PWA.
   static const label = 'FatFishPixel';
 
-  /// Body text.
-  static const body = 'Geist';
+  /// Reading and highlighted data, matching the current game theme.
+  static const body = 'Jersey15';
 
   /// Typewriter of the sheets on paper, regular and bold (700).
   static const paper = 'CourierPrime';

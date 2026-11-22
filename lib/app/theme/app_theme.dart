@@ -147,8 +147,8 @@ ThemeData buildFatFishTheme() {
   );
 }
 
-/// Type scale of the PWA (base.css): Jersey 10 for titles and numbers,
-/// Press Start 2P for labels and Geist (15 px, line height 1.5) for text.
+/// Game typography: Jersey 10 for titles, buttons and numbers,
+/// Fat Fish Pixel for labels and Jersey 15 for reading. Paper uses Courier Prime.
 TextTheme _textTheme() {
   const display = TextStyle(
     fontFamily: FatFishFonts.display,

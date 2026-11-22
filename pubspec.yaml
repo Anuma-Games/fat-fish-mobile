@@ -38,6 +38,7 @@ flutter:
     - assets/images/fat_fish.png
     - assets/images/mesa.jpg
     - assets/sonidos/
+    - assets/fonts/OFL-Jersey15.txt
 
   fonts:
     - family: Jersey10
@@ -47,11 +48,9 @@ flutter:
     - family: FatFishPixel
       fonts:
         - asset: assets/fonts/FatFishPixel-Regular.ttf
-    - family: Geist
+    - family: Jersey15
       fonts:
-        - asset: assets/fonts/Geist-Regular.ttf
-        - asset: assets/fonts/Geist-SemiBold.ttf
-          weight: 600
+        - asset: assets/fonts/Jersey15-Regular.ttf
     - family: CourierPrime
       fonts:
         - asset: assets/fonts/CourierPrime-Regular.ttf

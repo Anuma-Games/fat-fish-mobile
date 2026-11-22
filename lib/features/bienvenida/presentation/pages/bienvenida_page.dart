@@ -96,98 +96,119 @@ class _BienvenidaPageState extends State<BienvenidaPage>
                 FatFishSpacing.s6,
                 padding.bottom + 28,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'ANUMA GAMES PRESENTA',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: FatFishFonts.label,
-                      fontSize: 9,
-                      letterSpacing: 1,
-                      color: FatFishColors.gold400,
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                  ),
-                  const SizedBox(height: FatFishSpacing.s2),
-                  ValueListenableBuilder(
-                    valueListenable: _seconds,
-                    builder: (context, seconds, child) => Opacity(
-                      // Old screen flicker, every 7 s.
-                      opacity: stepped((seconds % 7) / 7, const [
-                        (0, 1),
-                        (0.48, 0.8),
-                        (0.49, 1),
-                        (0.84, 0.9),
-                        (0.85, 1),
-                      ]),
-                      child: child,
-                    ),
-                    child: const _Title(),
-                  ),
-                  const SizedBox(height: FatFishSpacing.s1),
-                  Text(
-                    'Una mesa. Cada ronda pide más. El casino siempre sabe de ti.',
-                    textAlign: TextAlign.center,
-                    style: textTheme.titleLarge?.copyWith(
-                      color: FatFishColors.gold400,
-                      height: 1.1,
-                    ),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: ValueListenableBuilder(
-                        valueListenable: _seconds,
-                        builder: (context, seconds, _) =>
-                            _TableIcon(seconds: seconds),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'ANUMA GAMES PRESENTA',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: FatFishFonts.label,
+                              fontSize: 9,
+                              letterSpacing: 1,
+                              color: FatFishColors.gold400,
+                            ),
+                          ),
+                          const SizedBox(height: FatFishSpacing.s2),
+                          ValueListenableBuilder(
+                            valueListenable: _seconds,
+                            builder: (context, seconds, child) => Opacity(
+                              // Old screen flicker, every 7 s.
+                              opacity: stepped((seconds % 7) / 7, const [
+                                (0, 1),
+                                (0.48, 0.8),
+                                (0.49, 1),
+                                (0.84, 0.9),
+                                (0.85, 1),
+                              ]),
+                              child: child,
+                            ),
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: _Title(),
+                            ),
+                          ),
+                          const SizedBox(height: FatFishSpacing.s1),
+                          Text(
+                            'Una mesa. Cada ronda pide más. El casino siempre sabe de ti.',
+                            textAlign: TextAlign.center,
+                            style: textTheme.titleLarge?.copyWith(
+                              color: FatFishColors.gold400,
+                              height: 1.1,
+                            ),
+                          ),
+                          Expanded(
+                            child: Center(
+                              child: ValueListenableBuilder(
+                                valueListenable: _seconds,
+                                builder: (context, seconds, _) =>
+                                    _TableIcon(seconds: seconds),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            'Busca tu jugador para ver lo que el casino anotó de ti',
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: FatFishSpacing.s4),
+                          DecoratedBox(
+                            decoration: const BoxDecoration(
+                              borderRadius: BorderRadius.all(
+                                FatFishRadius.card,
+                              ),
+                              boxShadow: FatFishShadows.hard,
+                            ),
+                            child: FilledButton(
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size.fromHeight(52),
+                                textStyle: textTheme.labelLarge?.copyWith(
+                                  fontSize: 24,
+                                ),
+                              ),
+                              onPressed: () => context.push(AppRoutes.jugador),
+                              child: const Text('Buscar mi jugador'),
+                            ),
+                          ),
+                          const SizedBox(height: FatFishSpacing.s3),
+                          OutlinedButton(
+                            style:
+                                OutlinedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(52),
+                                  backgroundColor: Colors.transparent,
+                                  textStyle: textTheme.labelLarge?.copyWith(
+                                    fontSize: 24,
+                                  ),
+                                ).copyWith(
+                                  side: const WidgetStatePropertyAll(
+                                    BorderSide(
+                                      color: FatFishColors.gold600,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                            onPressed: () => context.go(AppRoutes.ranking),
+                            child: const Text('Ver el ranking mundial'),
+                          ),
+                          const SizedBox(height: FatFishSpacing.s3),
+                          Text(
+                            'No necesitas cuenta ni contraseña. '
+                            'Todo el dinero del juego es ficticio.',
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodySmall?.copyWith(fontSize: 12),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  Text(
-                    'Busca tu jugador para ver lo que el casino anotó de ti',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: FatFishSpacing.s4),
-                  DecoratedBox(
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(FatFishRadius.card),
-                      boxShadow: FatFishShadows.hard,
-                    ),
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
-                        textStyle: textTheme.labelLarge?.copyWith(fontSize: 24),
-                      ),
-                      onPressed: () => context.push(AppRoutes.jugador),
-                      child: const Text('Buscar mi jugador'),
-                    ),
-                  ),
-                  const SizedBox(height: FatFishSpacing.s3),
-                  OutlinedButton(
-                    style:
-                        OutlinedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(52),
-                          backgroundColor: Colors.transparent,
-                          textStyle: textTheme.labelLarge?.copyWith(
-                            fontSize: 24,
-                          ),
-                        ).copyWith(
-                          side: const WidgetStatePropertyAll(
-                            BorderSide(color: FatFishColors.gold600, width: 2),
-                          ),
-                        ),
-                    onPressed: () => context.go(AppRoutes.ranking),
-                    child: const Text('Ver el ranking mundial'),
-                  ),
-                  const SizedBox(height: FatFishSpacing.s3),
-                  Text(
-                    'No necesitas cuenta ni contraseña. '
-                    'Todo el dinero del juego es ficticio.',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodySmall?.copyWith(fontSize: 12),
-                  ),
-                ],
+                ),
               ),
             ),
           ],
