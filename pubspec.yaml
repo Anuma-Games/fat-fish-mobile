@@ -30,6 +30,7 @@ dev_dependencies:
   drift_dev: ^2.35.3
   build_runner: ^2.16.1
   flutter_launcher_icons: ^0.14.4
+  image: ^4.12.0
 
 flutter:
   uses-material-design: true
@@ -38,6 +39,8 @@ flutter:
     - assets/images/fat_fish.png
     - assets/images/mesa.jpg
     - assets/sonidos/
+    - assets/sonidos/roulette/
+    - assets/fonts/OFL-Jersey15.txt
 
   fonts:
     - family: Jersey10
@@ -47,23 +50,22 @@ flutter:
     - family: FatFishPixel
       fonts:
         - asset: assets/fonts/FatFishPixel-Regular.ttf
-    - family: Geist
+    - family: Jersey15
       fonts:
-        - asset: assets/fonts/Geist-Regular.ttf
-        - asset: assets/fonts/Geist-SemiBold.ttf
-          weight: 600
+        - asset: assets/fonts/Jersey15-Regular.ttf
     - family: CourierPrime
       fonts:
         - asset: assets/fonts/CourierPrime-Regular.ttf
         - asset: assets/fonts/CourierPrime-Bold.ttf
           weight: 700
 
-# App icon: regenerate with `dart run flutter_launcher_icons` after changing assets/icon.
+# Logo, launch images and icons: regenerate with `dart run tool/generate_logo.dart`.
 flutter_launcher_icons:
   image_path: assets/icon/icon.png
   android: true
   adaptive_icon_background: "#0B1416"
   adaptive_icon_foreground: assets/icon/icon_foreground.png
+  adaptive_icon_foreground_inset: 20
   ios: true
   remove_alpha_ios: true
   background_color_ios: "#0B1416"

@@ -52,7 +52,7 @@ class OfflineNotice extends StatelessWidget {
                     'Pueden estar desactualizados.',
                     style: const TextStyle(
                       fontFamily: FatFishFonts.body,
-                      fontSize: 13,
+                      fontSize: 16,
                       height: 1.45,
                       color: FatFishColors.cream100,
                     ),

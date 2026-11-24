@@ -76,6 +76,7 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
   double _ballTo = 0;
   double _radiusFrom = RouletteWheel.trackRadius;
   bool _inPocket = false;
+  bool _landed = false;
   int? _pick;
 
   // Sound of the frame before, to pace the clicks and the roll.
@@ -242,6 +243,7 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
     _ballFrom = ballFrom;
     _ballTo = Roulette.ballTarget(ballFrom, pick);
     _pick = pick;
+    _landed = false;
     _pacer.reset();
     _lastProgress = 0;
     _lastBall = _ballFrom;
@@ -254,6 +256,7 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
       _finish();
       return;
     }
+    _sound?.launch();
     _spin.value = 0;
     setState(() {});
     _updatePulse();
@@ -262,11 +265,19 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
 
   /// Clicks of the ball against the frets and its roll, paced like the PWA.
   void _onFrame() {
-    final sound = _sound;
-    if (sound == null || !_spinning) return;
+    if (!_spinning) return;
     final k = _progress;
+    // Use the rendered position, including the hop over the last fret. The ball
+    // enters its final pocket before the animation controller finishes slowing.
+    if (k >= 0.75 &&
+        (_ballInHead + _hop - _ballTo).abs() <= Roulette.step / 2) {
+      _land();
+    }
+    final sound = _sound;
+    if (_landed || sound == null) return;
+    final previousProgress = _lastProgress;
     final seconds =
-        (k - _lastProgress) * MesaPage.spinDuration.inMicroseconds / 1e6;
+        (k - previousProgress) * MesaPage.spinDuration.inMicroseconds / 1e6;
     if (seconds <= 0) return;
     final ball = _ballInHead;
     final frets = (ball - _lastBall) / seconds * Roulette.pockets;
@@ -276,12 +287,16 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
     // On the track the clicks are fast, light and high; among the frets louder, deeper
     // and further apart, as in the PWA.
     final amongFrets = ClickPacer.amongFrets(k);
-    sound.roll(ClickPacer.speedAt(k), amongFrets);
-    final clicks = _pacer.advance(
-      progress: k,
-      seconds: seconds,
-      fretsPerSecond: frets,
-    );
+    // The rim keeps its rolling friction; fade it out during the descent, then
+    // let the individual pocket impacts take over.
+    if (k < 0.75) {
+      sound.roll(ClickPacer.speedAt(k), _smooth(0.5, 0.75, k));
+    } else if (previousProgress < 0.75) {
+      sound.stopRoll();
+    }
+    final clicks = k < 0.5
+        ? 0
+        : _pacer.advance(progress: k, seconds: seconds, fretsPerSecond: frets);
     final strength = 0.28 + 0.72 * amongFrets;
     final tone = 3600 - 900 * amongFrets;
     for (var i = 0; i < clicks; i++) {
@@ -299,13 +314,20 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
     _radiusPrevious = radius;
   }
 
+  void _land() {
+    if (_landed) return;
+    _landed = true;
+    _sound
+      ?..stopRoll()
+      ..click(0.7 + 0.3 * _random.nextDouble(), tone: 2700);
+    Haptics.medium(context);
+  }
+
   void _finish() {
     if (!mounted || _spin.value < 1) return;
     final number = Roulette.order[_pick!];
-    _sound
-      ?..stopRoll()
-      ..fall();
-    Haptics.medium(context);
+    // Also covers reduced motion and a skipped final animation frame.
+    _land();
     setState(() {
       _inPocket = true;
       _spins++;
@@ -324,16 +346,26 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
       extendBodyBehindAppBar: true,
       appBar: const FatFishAppBar(title: 'La mesa'),
       // Under the Scaffold, whose MediaQuery counts the bars over the content.
-      body: Builder(
-        builder: (context) {
+      body: LayoutBuilder(
+        builder: (context, constraints) {
           final padding = MediaQuery.paddingOf(context);
+          // Scale the photo's height with the scene too, so the betting table in
+          // the image stays above the result and counters on shorter phones.
+          final sceneScale = math.min(
+            1.0,
+            math.min(
+              constraints.maxWidth / MesaPage._scene.width,
+              math.max(0, constraints.maxHeight - padding.vertical) /
+                  MesaPage._scene.height,
+            ),
+          );
           return Stack(
             children: [
               Positioned(
                 top: padding.top,
                 left: 0,
                 right: 0,
-                height: 460,
+                height: 460 * sceneScale,
                 child: const _Photo(),
               ),
               Positioned.fill(
@@ -435,7 +467,7 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: FatFishFonts.body,
-              fontSize: 12,
+              fontSize: 15,
               height: 1.4,
               color: FatFishColors.fog400,
             ),
@@ -547,8 +579,8 @@ class _Photo extends StatelessWidget {
               end: Alignment.bottomCenter,
               colors: [
                 FatFishColors.bg900,
-                Color(0x8C0B1416),
-                Color(0x590B1416),
+                Color(0x4D0B1416),
+                Color(0x290B1416),
                 FatFishColors.bg900,
               ],
               stops: [0, 0.28, 0.55, 1],
