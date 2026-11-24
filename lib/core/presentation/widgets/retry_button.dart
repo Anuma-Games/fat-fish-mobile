@@ -90,8 +90,8 @@ class _RetryButtonState extends State<RetryButton> {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         textStyle: const TextStyle(
           fontFamily: FatFishFonts.body,
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
+          fontSize: 17,
+          fontWeight: FontWeight.w400,
         ),
       ),
       child: semantics,
