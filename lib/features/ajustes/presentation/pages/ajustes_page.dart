@@ -43,9 +43,7 @@ class AjustesPage extends StatelessWidget {
                 // The design's background music; here the room of the PWA plays.
                 _SwitchRow(
                   title: 'Ambiente de fondo',
-                  detail:
-                      'El cuarto y el zumbido de la lámpara en bucle mientras '
-                      'navegas.',
+                  detail: 'Jazz nocturno del juego en bucle mientras navegas.',
                   value: settings.ambienceOn,
                   onChanged: (_) => cubit.toggleAmbience(),
                 ),

@@ -185,9 +185,39 @@ de la barra superior y guarda en el teléfono el ambiente de fondo, los sonidos 
 vibración; la bocina de la barra enciende y apaga el ambiente. El sonido empieza apagado, se pausa cuando la app pasa a segundo plano y, con "reducir
 movimiento", la ruleta da el resultado sin animación.
 
-Los sonidos de la mesa son los de `sonido-mesa.ts` de la PWA (ambiente del cuarto, zumbido de la lámpara, clics de la
-bola y su caída), grabados como WAV en `assets/sonidos/` con `python3 -I tool/sonidos_mesa.py`. Los reproduce SoLoud (`flutter_soloud`),
-un motor de audio para juegos: el ambiente se repite sin cortes y los clics suenan al instante.
+El fondo visual de la mesa (`assets/images/mesa.jpg`) se exporta desde el escenario actual de Unity,
+sin HUD y con el encuadre original del juego: conserva al crupier, la mesa y el local.
+El exportador ejecuta el constructor de ruleta de la partida antes de renderizar, para incluir
+el tazón y las casillas actuales en lugar del modelo antiguo de la escena guardada.
+La app mantiene el recorte anterior, con un degradado más ligero para mostrar mejor al crupier;
+la altura del fondo acompaña la escala
+de la ruleta para que la foto no quede detrás de los resultados en teléfonos más bajos.
+La exportación se documenta en [`tool/unity/README.md`](tool/unity/README.md).
+
+El fondo musical es una exportación instrumental de `GameSynth.cs`, el sintetizador de la mesa del juego:
+jazz nocturno a 86 BPM, con bajo caminante, acordes con swing, escobillas y vibráfono. Usa la versión tranquila
+(tensión 0, sin jefe), sin conversaciones ni grabaciones de bares. El bucle dura 44.651 segundos, cuatro vueltas
+de la progresión Am7–Dm7–Bbmaj7–E7(b9).
+
+Para exportar solo la música: `python3 -I tool/render_gamesynth.py`. Requiere .NET SDK 8+ y el repositorio
+hermano `fat-fish-game`; se puede indicar otra ruta con `--source /ruta/GameSynth.cs`. Se ejecuta el callback
+C# original con un adaptador mínimo, sin abrir Unity ni modificar el juego. Los créditos están en
+`assets/sonidos/CREDITS.md`.
+
+La ruleta usa las mismas grabaciones del juego (`assets/sonidos/roulette/`): lanzamiento, rodado,
+14 golpes. Se copian sin procesar con `python3 -I tool/import_roulette.py`,
+desde `fat-fish-game/Assets/Resources/Audio/Roulette`; acepta otra ruta con `--source`.
+El roce del borde usa `roll.wav` con un nivel suave y su tono natural, sin barrido de velocidad;
+se desvanece durante la bajada y se detiene al llegar a las casillas. Conserva el lanzamiento breve y los golpes individuales,
+con variaciones ligeras de tono y sin repetir inmediatamente la misma toma. Al entrar en su casilla
+definitiva se detiene el rodado y se reproduce un único golpe del mismo banco, junto con la vibración; no se añade
+un clic al terminar la animación.
+
+Para exportar música, importar la ruleta y regenerar el encendido de la lámpara:
+`python3 -I tool/sonidos_mesa.py` (requiere .NET SDK 8+ y el código del juego).
+SoLoud (`flutter_soloud`) aplica los 10 niveles guardados como volumen
+maestro, también a los sonidos en curso, y limita los picos de la mezcla a −1 dBFS. Al pasar a segundo plano se
+detienen todos los sonidos, incluidos los efectos cortos; al volver se recupera el ambiente si estaba activado.
 
 El logo aprobado está en `assets/icon/source/fat_fish_logo.png`. `tool/generate_logo.dart` exporta el mismo
 logo para la app, el README y las pantallas de arranque Android/iOS, y regenera los iconos de instalación.
