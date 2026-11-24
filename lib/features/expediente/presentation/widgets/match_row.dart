@@ -173,9 +173,9 @@ class LossChip extends StatelessWidget {
         '-${formatMoney(amount)}',
         style: const TextStyle(
           fontFamily: FatFishFonts.body,
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          height: 20 / 13,
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          height: 20 / 16,
           color: FatFishColors.cream100,
         ),
       ),
