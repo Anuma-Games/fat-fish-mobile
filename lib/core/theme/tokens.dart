@@ -98,6 +98,7 @@ abstract final class FatFishFonts {
   static const label = 'FatFishPixel';
 
   /// Reading and highlighted data, matching the current game theme.
+  /// Only Regular (400) is bundled; heavier weights would synthesize bold pixels.
   static const body = 'Jersey15';
 
   /// Typewriter of the sheets on paper, regular and bold (700).

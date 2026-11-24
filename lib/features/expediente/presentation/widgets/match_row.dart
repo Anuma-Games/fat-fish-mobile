@@ -174,8 +174,8 @@ class LossChip extends StatelessWidget {
         style: const TextStyle(
           fontFamily: FatFishFonts.body,
           fontSize: 16,
-          fontWeight: FontWeight.w600,
-          height: 20 / 13,
+          fontWeight: FontWeight.w400,
+          height: 20 / 16,
           color: FatFishColors.cream100,
         ),
       ),

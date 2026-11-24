@@ -161,7 +161,7 @@ class _Dossier extends StatelessWidget {
                   textStyle: const TextStyle(
                     fontFamily: FatFishFonts.body,
                     fontSize: 17,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
                 child: Text(
