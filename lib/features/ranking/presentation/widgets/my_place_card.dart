@@ -52,8 +52,8 @@ class MyPlaceCard extends StatelessWidget {
                   AliasLine(alias: player.alias, id: player.id),
                   Text(
                     place == null
-                        ? 'Gana una partida para entrar'
-                        : 'Tu mejor partida',
+                        ? 'Gana una partida para entrar.'
+                        : 'Tu mejor victoria',
                     style: textTheme.bodySmall,
                   ),
                 ],

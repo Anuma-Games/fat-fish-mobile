@@ -172,7 +172,7 @@ medidas.
 | Rojo             | `#B3261E`, el único: pérdida, derrota y peligro; como texto solo sobre papel                                                                   |
 | Texto            | `#F2E8CC` y `#9AA8A2`                                                                                                                          |
 | Papel y tinta    | `#E6DCC3` y `#231E17`                                                                                                                          |
-| Fuentes          | **Jersey 10** (títulos), **Fat Fish Pixel** (etiquetas), **Geist** (texto) y **Courier Prime** (papel), en `assets/fonts/` con su licencia OFL |
+| Fuentes          | **Jersey 10** (títulos, botones y cifras), **Jersey 15** (lectura y datos destacados), **Fat Fish Pixel** (etiquetas) y **Courier Prime** (papel), en `assets/fonts/` con su licencia OFL |
 
 **Fat Fish Pixel** es Press Start 2P con las mayúsculas acentuadas (Á É Í Ó Ú Ñ Ü) a altura completa, como la fuente
 `fat-fish-acentos` de la PWA: en la original parecen minúsculas. Se genera con
@@ -219,7 +219,18 @@ SoLoud (`flutter_soloud`) aplica los 10 niveles guardados como volumen
 maestro, también a los sonidos en curso, y limita los picos de la mezcla a −1 dBFS. Al pasar a segundo plano se
 detienen todos los sonidos, incluidos los efectos cortos; al volver se recupera el ambiente si estaba activado.
 
-El ícono de la app sale de `assets/icon/` y se regenera con `dart run flutter_launcher_icons`.
+El logo aprobado está en `assets/icon/source/fat_fish_logo.png`. `tool/generate_logo.dart` exporta el mismo
+logo para la app, el README y las pantallas de arranque Android/iOS, y regenera los iconos de instalación.
+La app y el README usan una exportación de 512 px; las reducciones promedian los píxeles para suavizar
+los bordes. El original se conserva para regenerar los recursos y el icono adaptativo.
+Para actualizarlo, reemplaza el archivo fuente y ejecuta desde la raíz del repositorio:
+
+```bash
+dart run tool/generate_logo.dart
+```
+
+Los iconos de instalación se generan desde `assets/icon/`, con fondo `#0B1416`. El icono adaptativo Android
+usa un margen de 20 % para mantener el emblema completo al aplicar distintas máscaras del launcher.
 
 ## 8. Integración continua y flujo de trabajo
 

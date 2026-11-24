@@ -467,7 +467,7 @@ class _MesaPageState extends State<MesaPage> with TickerProviderStateMixin {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: FatFishFonts.body,
-              fontSize: 12,
+              fontSize: 15,
               height: 1.4,
               color: FatFishColors.fog400,
             ),
