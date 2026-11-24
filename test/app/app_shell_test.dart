@@ -207,6 +207,23 @@ void main() {
     expect(find.text('Mejores puntajes'), findsOneWidget);
   });
 
+  testWidgets('tapping the open tab returns to its first screen silently', (
+    tester,
+  ) async {
+    final sound = _RecordingSound();
+    await pumpApp(tester, player: true, tableSound: sound);
+    await tester.scrollUntilVisible(find.text('Ver la partida'), 200);
+    await tester.tap(find.text('Ver la partida'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cada partida, anotada'), findsOneWidget);
+
+    await tester.tap(tab('Expediente'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cada partida, anotada'), findsNothing);
+    expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
+    expect(sound.chips, 0);
+  });
+
   testWidgets(
     'rapid repeated taps emit one chip and an active-tab drag stays silent',
     (tester) async {

@@ -7,7 +7,7 @@
   por el `GameSynth.cs` del juego. Ver receta y procedencia en `assets/sonidos/NAVEGACION.md`.
 - Un evento por selección confirmada de otra sección, tanto por toque como al soltar
   un gesto. No se dispara al iniciar la app ni al mover el dedo sobre las fichas.
-- Tocar la sección activa conserva la pantalla abierta; el filtro de selección pendiente
+- Tocar la sección activa la regresa a su primera pantalla, sin sonido; el filtro de selección pendiente
   evita duplicar sonidos con toques repetidos antes del siguiente fotograma.
 - Se limpia la previsualización al recibir cancelación de puntero: Flutter puede llamar
   `onHorizontalDragEnd` incluso al cancelar un gesto que ya reconoció.
@@ -49,7 +49,7 @@ La muestra de escucha repite la ficha tres veces con separación; la app dispara
 ## Revisión en teléfono
 
 1. Activar Sonidos de la mesa, elegir 60 % de volumen y alternar las tres secciones.
-2. Repetir el toque sobre la sección activa y confirmar que no hay otro sonido.
+2. Abrir el historial y tocar Expediente: vuelve al expediente sin otro sonido.
 3. Deslizar sin soltar, cancelar y volver al origen: no debe sonar; soltar sobre otra
    sección debe producir una sola ficha.
 4. Repetir con efectos apagados, volumen cero y después de enviar la app al fondo.

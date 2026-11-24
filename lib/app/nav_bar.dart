@@ -53,7 +53,11 @@ class _FatFishNavBarState extends State<FatFishNavBar> {
   }
 
   void _select(int index) {
-    if (index == widget.currentIndex) return;
+    if (index == widget.currentIndex) {
+      // Tapping the open tab again still returns it to its first screen.
+      widget.onSelect(index);
+      return;
+    }
     Haptics.light(context);
     widget.onSelect(index);
   }

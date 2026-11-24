@@ -88,10 +88,12 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _openTab(int index) {
-    if (index == widget.navigationShell.currentIndex ||
-        index == _pendingIndex) {
+    if (index == widget.navigationShell.currentIndex) {
+      // Tapping the open tab again returns it to its first screen, silently.
+      widget.navigationShell.goBranch(index, initialLocation: true);
       return;
     }
+    if (index == _pendingIndex) return;
     // Deduplicate rapid taps before the router has rebuilt the navigation shell.
     _pendingIndex = index;
     widget.navigationShell.goBranch(index);
