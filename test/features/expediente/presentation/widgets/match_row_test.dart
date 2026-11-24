@@ -1,3 +1,4 @@
+import 'package:fat_fish_mobile/core/theme/tokens.dart';
 import 'package:fat_fish_mobile/features/expediente/domain/entities/played_match.dart';
 import 'package:fat_fish_mobile/features/expediente/presentation/widgets/match_row.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +18,10 @@ void main() {
     playedAt: DateTime.utc(2026, 11, 22),
   );
 
-  for (final (received, amount, label) in [
-    (1450, r'+$450', r'Ganancia en jugadas: $450'),
-    (550, '−\$450', r'Pérdida en jugadas: $450'),
-    (1000, r'$0', 'Jugadas sin ganancia ni pérdida'),
+  for (final (received, amount, label, fill) in [
+    (1450, r'+$450', r'Ganancia en jugadas: $450', FatFishColors.felt700),
+    (550, '−\$450', r'Pérdida en jugadas: $450', FatFishColors.red),
+    (1000, r'$0', 'Jugadas sin ganancia ni pérdida', null),
   ]) {
     testWidgets('shows one net amount: $amount', (tester) async {
       final semantics = tester.ensureSemantics();
@@ -29,6 +30,13 @@ void main() {
       );
 
       expect(find.text(amount), findsOneWidget);
+      // Cream text on a green or red fill; zero has none.
+      final badge = tester.widget<Container>(
+        find.ancestor(of: find.text(amount), matching: find.byType(Container)),
+      );
+      expect((badge.decoration! as BoxDecoration).color, fill);
+      final style = tester.widget<Text>(find.text(amount)).style;
+      expect(style?.color, FatFishColors.cream100);
       expect(find.bySemanticsLabel(label), findsOneWidget);
       expect(find.text('99,999 pts'), findsOneWidget);
       final pointsRight = tester.getTopRight(find.text('99,999 pts')).dx;

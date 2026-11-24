@@ -176,15 +176,16 @@ class _SpinBalance extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: amount < 0 ? FatFishColors.red : null,
+            // Cream on a fill, like the game: felt green for a gain, red for a loss.
+            color: amount > 0
+                ? FatFishColors.felt700
+                : (amount < 0 ? FatFishColors.red : null),
             borderRadius: const BorderRadius.all(FatFishRadius.field),
           ),
           child: Text(
             text,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontSize: 22,
-              color: amount > 0 ? FatFishColors.fog400 : FatFishColors.cream100,
-            ),
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(fontSize: 22, color: FatFishColors.cream100),
           ),
         ),
       ),
