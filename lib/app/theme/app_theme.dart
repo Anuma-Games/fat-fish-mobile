@@ -103,7 +103,7 @@ ThemeData buildFatFishTheme() {
         disabledBackgroundColor: _half(FatFishColors.bg800),
         disabledForegroundColor: _half(FatFishColors.cream100),
         minimumSize: const Size(44, 44),
-        textStyle: const TextStyle(fontFamily: FatFishFonts.body, fontSize: 14),
+        textStyle: const TextStyle(fontFamily: FatFishFonts.body, fontSize: 17),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(FatFishRadius.card),
         ),
@@ -147,8 +147,8 @@ ThemeData buildFatFishTheme() {
   );
 }
 
-/// Type scale of the PWA (base.css): Jersey 10 for titles and numbers,
-/// Press Start 2P for labels and Geist (15 px, line height 1.5) for text.
+/// Game typography: Jersey 10 for titles, buttons and numbers,
+/// Fat Fish Pixel for labels and Jersey 15 for reading. Paper uses Courier Prime.
 TextTheme _textTheme() {
   const display = TextStyle(
     fontFamily: FatFishFonts.display,
@@ -176,9 +176,9 @@ TextTheme _textTheme() {
     headlineSmall: display.copyWith(fontSize: 24), // h3
     titleLarge: display.copyWith(fontSize: 26), // app bar (.topbar-title)
     labelLarge: display.copyWith(fontSize: 22, height: 1), // buttons
-    bodyLarge: body.copyWith(fontSize: 16),
-    bodyMedium: body.copyWith(fontSize: 15),
-    bodySmall: body.copyWith(fontSize: 13, color: FatFishColors.fog400),
+    bodyLarge: body.copyWith(fontSize: 19),
+    bodyMedium: body.copyWith(fontSize: 18),
+    bodySmall: body.copyWith(fontSize: 16, color: FatFishColors.fog400),
     labelSmall: label, // write the text in uppercase, like .label in the PWA
   );
 }

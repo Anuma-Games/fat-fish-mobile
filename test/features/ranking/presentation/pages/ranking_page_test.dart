@@ -153,7 +153,7 @@ void main() {
       findsOneWidget,
     );
     final content = tester.widget<Text>(explanation);
-    expect(content.style?.fontFamily, 'Jersey15');
+    expect(content.style?.fontFamily, FatFishFonts.body);
     expect(content.style?.fontSize, 20);
     expect(content.style?.color, FatFishColors.ink900);
     final title = tester.widget<Text>(find.text('¿Cómo subir posiciones?'));

@@ -293,7 +293,7 @@ class _RankingHelpNote extends StatelessWidget {
                         'cuánto ganaste o perdiste en cada partida.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          fontFamily: 'Jersey15',
+                          fontFamily: FatFishFonts.body,
                           fontSize: 20,
                           height: 1.25,
                           color: FatFishColors.ink900,
