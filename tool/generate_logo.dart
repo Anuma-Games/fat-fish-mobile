@@ -8,8 +8,9 @@ void main() {
   const size = 1024;
   final source = File('assets/icon/source/fat_fish_logo.png');
   final emblem = img.decodePng(source.readAsBytesSync())!;
-  source.copySync('assets/images/fat_fish.png');
-  write('docs/img/logo.png', resize(emblem, 512));
+  final logo = resize(emblem, 512);
+  write('assets/images/fat_fish.png', logo);
+  write('docs/img/logo.png', logo);
   source.copySync('assets/icon/icon_foreground.png');
 
   final icon = img.Image(width: size, height: size, numChannels: 3);
@@ -55,7 +56,7 @@ img.Image resize(img.Image image, int pixels) => img.copyResize(
   image,
   width: pixels,
   height: pixels,
-  interpolation: img.Interpolation.nearest,
+  interpolation: img.Interpolation.average,
 );
 
 void write(String path, img.Image image) =>

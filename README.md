@@ -191,6 +191,8 @@ un motor de audio para juegos: el ambiente se repite sin cortes y los clics suen
 
 El logo aprobado está en `assets/icon/source/fat_fish_logo.png`. `tool/generate_logo.dart` exporta el mismo
 logo para la app, el README y las pantallas de arranque Android/iOS, y regenera los iconos de instalación.
+La app y el README usan una exportación de 512 px; las reducciones promedian los píxeles para suavizar
+los bordes. El original se conserva para regenerar los recursos y el icono adaptativo.
 Para actualizarlo, reemplaza el archivo fuente y ejecuta desde la raíz del repositorio:
 
 ```bash
