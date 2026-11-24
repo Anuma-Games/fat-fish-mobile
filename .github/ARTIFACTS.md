@@ -7,6 +7,7 @@
 Después de pasar todos los jobs de CI, un push a `main` publica `fat-fish-mobile.apk` en Releases.
 En `main` se compila un APK release firmado con la llave permanente y la configuración de producción.
 Los pull requests y `develop` siguen compilando un APK de depuración, sin secretos de producción.
+Sin `ANDROID_KEYSTORE_PATH`, una compilación release local se firma con la llave de depuración.
 No caduca por antigüedad: permanece aunque no haya cambios durante meses o falle el siguiente CI.
 `develop` y los pull requests no reemplazan esta descarga.
 

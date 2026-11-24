@@ -43,7 +43,12 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            // CI signs with the permanent key. Without ANDROID_KEYSTORE_PATH, a local
+            // `flutter run --release` or `flutter build apk --release` uses the debug key.
+            signingConfig = if (System.getenv("ANDROID_KEYSTORE_PATH") != null)
+                signingConfigs.getByName("release")
+            else
+                signingConfigs.getByName("debug")
         }
     }
 }
