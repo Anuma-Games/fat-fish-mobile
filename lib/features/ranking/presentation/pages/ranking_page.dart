@@ -146,144 +146,7 @@ class _Ranking extends StatelessWidget {
               icon: const Icon(Icons.info_outline),
               onPressed: () => showDialog<void>(
                 context: context,
-                builder: (context) => Dialog(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  insetPadding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 32,
-                  ),
-                  child: Transform.rotate(
-                    angle: 0.012,
-                    child: RuledPaper(
-                      padding: const EdgeInsets.all(24),
-                      shadow: const [
-                        BoxShadow(
-                          color: FatFishColors.ink500,
-                          offset: Offset(0, 5),
-                        ),
-                      ],
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'NOTA DE LA CASA',
-                                style: TextStyle(
-                                  fontFamily: FatFishFonts.label,
-                                  fontSize: 7,
-                                  color: FatFishColors.ink900,
-                                ),
-                              ),
-                              Text(
-                                'RANKING',
-                                style: TextStyle(
-                                  fontFamily: FatFishFonts.label,
-                                  fontSize: 7,
-                                  color: FatFishColors.ink900,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            height: 2,
-                            child: LayoutBuilder(
-                              builder: (context, constraints) => Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: List.generate(
-                                  (constraints.maxWidth / 6).floor().clamp(
-                                    1,
-                                    1000,
-                                  ),
-                                  (_) => const SizedBox(
-                                    width: 3,
-                                    height: 2,
-                                    child: ColoredBox(
-                                      color: FatFishColors.ink500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Flexible(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    '¿Cómo subir posiciones?',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: FatFishFonts.display,
-                                      fontSize: 32,
-                                      height: 1,
-                                      color: FatFishColors.ink900,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Para entrar, gana una partida. Solo cuenta el mayor puntaje '
-                                    'en una victoria; no se suman tus partidas.\n\n'
-                                    'En empate, queda primero '
-                                    'quien lo consiguió antes.\n\n'
-                                    'Los puntos no son dinero. En el historial puedes ver '
-                                    'cuánto ganaste o perdiste en cada partida.',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Jersey15',
-                                      fontSize: 20,
-                                      height: 1.25,
-                                      color: FatFishColors.ink900,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Align(
-                            alignment: Alignment.center,
-                            child: Transform.rotate(
-                              angle: -0.015,
-                              child: DecoratedBox(
-                                decoration: const BoxDecoration(
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: FatFishColors.ink500,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: FilledButton(
-                                  style: FilledButton.styleFrom(
-                                    foregroundColor: FatFishColors.paper100,
-                                    backgroundColor: FatFishColors.ink900,
-                                    minimumSize: const Size(156, 48),
-                                    side: BorderSide.none,
-                                    shape: const RoundedRectangleBorder(),
-                                    textStyle: const TextStyle(
-                                      fontFamily: FatFishFonts.display,
-                                      fontSize: 24,
-                                    ),
-                                  ),
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: const Text('Entendido'),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                builder: (context) => const _RankingHelpNote(),
               ),
             ),
           ],
@@ -341,6 +204,141 @@ class _Ranking extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// The house note that explains how the ranking orders the players.
+class _RankingHelpNote extends StatelessWidget {
+  const _RankingHelpNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: Transform.rotate(
+        angle: 0.012,
+        child: RuledPaper(
+          padding: const EdgeInsets.all(24),
+          shadow: const [
+            BoxShadow(color: FatFishColors.ink500, offset: Offset(0, 5)),
+          ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'NOTA DE LA CASA',
+                    style: TextStyle(
+                      fontFamily: FatFishFonts.label,
+                      fontSize: 7,
+                      color: FatFishColors.ink900,
+                    ),
+                  ),
+                  Text(
+                    'RANKING',
+                    style: TextStyle(
+                      fontFamily: FatFishFonts.label,
+                      fontSize: 7,
+                      color: FatFishColors.ink900,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 2,
+                child: LayoutBuilder(
+                  builder: (context, constraints) => Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(
+                      (constraints.maxWidth / 6).floor().clamp(1, 1000),
+                      (_) => const SizedBox(
+                        width: 3,
+                        height: 2,
+                        child: ColoredBox(color: FatFishColors.ink500),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        '¿Cómo subir posiciones?',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: FatFishFonts.display,
+                          fontSize: 32,
+                          height: 1,
+                          color: FatFishColors.ink900,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Para entrar, gana una partida. Solo cuenta el mayor puntaje '
+                        'en una victoria; no se suman tus partidas.\n\n'
+                        'En empate, queda primero '
+                        'quien lo consiguió antes.\n\n'
+                        'Los puntos no son dinero. En el historial puedes ver '
+                        'cuánto ganaste o perdiste en cada partida.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: 'Jersey15',
+                          fontSize: 20,
+                          height: 1.25,
+                          color: FatFishColors.ink900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.center,
+                child: Transform.rotate(
+                  angle: -0.015,
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: FatFishColors.ink500,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        foregroundColor: FatFishColors.paper100,
+                        backgroundColor: FatFishColors.ink900,
+                        minimumSize: const Size(156, 48),
+                        side: BorderSide.none,
+                        shape: const RoundedRectangleBorder(),
+                        textStyle: const TextStyle(
+                          fontFamily: FatFishFonts.display,
+                          fontSize: 24,
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Entendido'),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
