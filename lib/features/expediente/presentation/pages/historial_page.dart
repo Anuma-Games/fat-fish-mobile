@@ -137,7 +137,7 @@ class _History extends StatelessWidget {
                 Appear(
                   key: ValueKey(match.id),
                   delay: FatFishMotion.stagger * (index % matchPageSize),
-                  child: MatchRow(match, showInvested: true),
+                  child: MatchRow(match),
                 ),
             ],
           ),
