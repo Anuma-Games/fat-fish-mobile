@@ -109,6 +109,16 @@ class _AppShellState extends State<AppShell> {
     setState(() => _backTarget = target);
     Haptics.light(context);
     _openTab(target);
+    // The router rebuilds the shell in the next frame. If that change never
+    // arrives, release the lock so the tabs and back keep working.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _backTarget != target) return;
+      if (widget.navigationShell.currentIndex == target) return;
+      setState(() {
+        _backTarget = null;
+        _sectionHistory.add(target);
+      });
+    });
   }
 
   @override
