@@ -205,13 +205,13 @@ C# original con un adaptador mínimo, sin abrir Unity ni modificar el juego. Los
 `assets/sonidos/CREDITS.md`.
 
 La ruleta usa las mismas grabaciones del juego (`assets/sonidos/roulette/`): lanzamiento, rodado,
-14 golpes y asentamiento de la bola. Se copian sin procesar con `python3 -I tool/import_roulette.py`,
+14 golpes. Se copian sin procesar con `python3 -I tool/import_roulette.py`,
 desde `fat-fish-game/Assets/Resources/Audio/Roulette`; acepta otra ruta con `--source`.
 El roce del borde usa `roll.wav` con un nivel suave y su tono natural, sin barrido de velocidad;
 se desvanece durante la bajada y se detiene al llegar a las casillas. Conserva el lanzamiento breve y los golpes individuales,
 con variaciones ligeras de tono y sin repetir inmediatamente la misma toma. Al entrar en su casilla
 definitiva se detiene el rodado y se reproduce un único golpe del mismo banco, junto con la vibración; no se añade
-un clic al terminar la animación. El archivo `settle.wav` se conserva en el banco, sin reproducirse en la mesa.
+un clic al terminar la animación.
 
 Para exportar música, importar la ruleta y regenerar el encendido de la lámpara:
 `python3 -I tool/sonidos_mesa.py` (requiere .NET SDK 8+ y el código del juego).

@@ -26,14 +26,12 @@ Grabaciones copiadas sin modificaciones desde
 - `roll.wav`, `launch.wav`, `hit_01.wav` a `hit_14.wav`: recortes usados por el juego de
   **roulette_casino_evian.aif**, f_ilippo, Casino de Evian.
   Fuente: https://freesound.org/people/f_ilippo/sounds/59194/
-- `settle.wav`: **Casino_RouletteSound_ball-damping**, poenia.
-  Fuente: https://freesound.org/people/poenia/sounds/709623/
 
-Ambas fuentes se publican bajo **CC0 1.0**, según sus páginas de Freesound.
+La fuente se publica bajo **CC0 1.0**, según su página de Freesound.
 Licencia: https://creativecommons.org/publicdomain/zero/1.0/
 
 La app conserva las ganancias de golpes de `RouletteSound.cs` (golpes 0.6;
-lanzamiento 0.7×golpes; asentamiento 0.6×golpes) y la variación de tono en impactos.
+lanzamiento 0.7×golpes) y la variación de tono en impactos.
 El rodado usa una ganancia máxima de 0.35, velocidad natural fija y un desvanecimiento
 al bajar del borde hacia las casillas. No sintetiza los sonidos de la ruleta.
 

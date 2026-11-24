@@ -14,7 +14,7 @@ def main():
     parser.add_argument('--source', type=Path, default=(
         root.parent / 'fat-fish-game/Assets/Resources/Audio/Roulette'))
     source = parser.parse_args().source
-    names = ['roll.wav', 'launch.wav', 'settle.wav'] + [
+    names = ['roll.wav', 'launch.wav'] + [
         f'hit_{i:02}.wav' for i in range(1, 15)]
     for name in names:
         if not (source / name).is_file():

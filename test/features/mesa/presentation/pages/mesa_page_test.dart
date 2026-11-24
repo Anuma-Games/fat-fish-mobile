@@ -14,7 +14,6 @@ class _RecordingSound extends SilentTableSound {
   int launches = 0;
   int clicks = 0;
   final tones = <double>[];
-  int falls = 0;
   final rolls = <double>[];
   int stops = 0;
 
@@ -32,9 +31,6 @@ class _RecordingSound extends SilentTableSound {
 
   @override
   void stopRoll() => stops++;
-
-  @override
-  void fall() => falls++;
 }
 
 void main() {
@@ -113,7 +109,6 @@ void main() {
     expect(sound.rolls.last, greaterThanOrEqualTo(0.0625));
     expect(sound.rolls.first, greaterThan(sound.rolls.last));
     expect(sound.stops, greaterThanOrEqualTo(1));
-    expect(sound.falls, 0);
 
     // The ball rides the head: it rests in its pocket wherever the head left it, not
     // always at the top.
@@ -190,7 +185,6 @@ void main() {
         impacts.where((s) => s == 'HapticFeedbackType.mediumImpact'),
         hasLength(1),
       );
-      expect(sound.falls, 0);
       await leave(tester);
     });
   }
@@ -230,7 +224,6 @@ void main() {
       expect(sound.tones, [2700]);
       expect(sound.launches, 0);
       expect(sound.rolls, isEmpty);
-      expect(sound.falls, 0);
 
       await leave(tester);
     },

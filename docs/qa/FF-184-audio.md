@@ -42,7 +42,7 @@ unión durante 5 ms. La primera y la última muestra PCM tienen el mismo valor (
 
 ## Banco de ruleta
 
-- 17 archivos de `fat-fish-game/Assets/Resources/Audio/Roulette`, copiados sin modificar sus bytes.
+- 16 archivos de `fat-fish-game/Assets/Resources/Audio/Roulette`, copiados sin modificar sus bytes.
 - Lanzamiento breve: `launch.wav`. El roce del borde usa `roll.wav` a velocidad natural fija,
   ganancia máxima 0.35; baja suavemente con la velocidad de la bola y se desvanece entre
   el 50 % y el 75 % de la animación, al bajar hacia las casillas.
@@ -50,7 +50,7 @@ unión durante 5 ms. La primera y la última muestra PCM tienen el mismo valor (
 - Los contactos discretos empiezan cuando la bola baja hacia las casillas (mitad del giro).
 - Los rebotes usan un tono más grave. Al entrar en la casilla definitiva, según el ángulo dibujado
   (incluido el salto sobre el separador), se detiene el rodado y se reproduce un único impacto normal
-  de casilla (tono 2700), junto con la vibración media. No se espera al final del controlador de animación ni se reproduce `settle.wav`.
+  de casilla (tono 2700), junto con la vibración media. No se espera al final del controlador de animación.
 - Con movimiento reducido el resultado, el único clic de llegada y la vibración son inmediatos; no hay lanzamiento ni rodado.
 - Se eliminaron los 18 WAV sintéticos de rodado/clics/caída de la app.
 

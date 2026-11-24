@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
 /// Calm GameSynth music and the recorded roulette bank used by the game:
-/// the ball rolling and clicking on the frets, and its fall into the pocket.
+/// the ball rolling and clicking on the frets.
 /// The background and the table sounds turn on apart; nothing plays until the player turns it on.
 abstract interface class TableSound {
   /// Turns the background [ambience] and the [effects] of the table on or off and sets
@@ -33,9 +33,6 @@ abstract interface class TableSound {
   void roll(double speed, double amongFrets);
   void stopRoll();
 
-  /// The ball settling in its pocket.
-  void fall();
-
   Future<void> dispose();
 }
 
@@ -61,8 +58,6 @@ class SilentTableSound implements TableSound {
   void roll(double speed, double amongFrets) {}
   @override
   void stopRoll() {}
-  @override
-  void fall() {}
   @override
   Future<void> dispose() async {}
 }
@@ -92,7 +87,6 @@ class AudioTableSound implements TableSound {
   AudioSource? _ambienceSource;
   AudioSource? _roll;
   AudioSource? _launch;
-  AudioSource? _fall;
   AudioSource? _switchOn;
   final _hits = <AudioSource>[];
   int _lastHit = -1;
@@ -121,14 +115,16 @@ class AudioTableSound implements TableSound {
     required double volume,
   }) async {
     final turnedOn = ambience && !_ambienceOn;
-    final turnedOff = (_ambienceOn && !ambience) || (_effectsOn && !effects);
+    final ambienceOff = _ambienceOn && !ambience;
+    final effectsOff = _effectsOn && !effects;
     _ambienceOn = ambience;
     _effectsOn = effects;
     _volume = volume.clamp(0, 1);
-    if (turnedOff) {
+    if (ambienceOff) {
       _hold();
-    } else if (!effects) {
-      stopRoll();
+    } else if (effectsOff) {
+      // The music keeps playing: only the ball and the lamp relay stop.
+      _stopEffects();
     }
     if (ambience || effects) {
       await _safeAsync(_prepare);
@@ -173,6 +169,15 @@ class AudioTableSound implements TableSound {
       // Stop transient clicks, the fall and the lamp relay too, not just loops.
       if (_loaded) _soloud.stopAll();
     });
+  }
+
+  void _stopEffects() {
+    stopRoll();
+    for (final source in [_launch, _switchOn, ..._hits]) {
+      for (final handle in [...?source?.handles]) {
+        unawaited(_safeAsync(() => _soloud.stop(handle)));
+      }
+    }
   }
 
   void _release() {
@@ -229,11 +234,6 @@ class AudioTableSound implements TableSound {
   }
 
   @override
-  void fall() {
-    if (_effectsAudible) _safe(() => _play(_fall, 0.6 * _hitGain));
-  }
-
-  @override
   Future<void> dispose() async {
     await _interruptions?.cancel();
     if (_soloud.isInitialized) _safe(_soloud.deinit);
@@ -275,7 +275,6 @@ class AudioTableSound implements TableSound {
     _ambienceSource = await load('ambiente');
     _roll = await load('roulette/roll');
     _launch = await load('roulette/launch');
-    _fall = await load('roulette/settle');
     _switchOn = await load('encendido');
     _hits.clear();
     for (var i = 1; i <= _hitCount; i++) {
