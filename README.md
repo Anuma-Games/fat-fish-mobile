@@ -172,7 +172,7 @@ medidas.
 | Rojo             | `#B3261E`, el único: pérdida, derrota y peligro; como texto solo sobre papel                                                                   |
 | Texto            | `#F2E8CC` y `#9AA8A2`                                                                                                                          |
 | Papel y tinta    | `#E6DCC3` y `#231E17`                                                                                                                          |
-| Fuentes          | **Jersey 10** (títulos), **Fat Fish Pixel** (etiquetas), **Geist** (texto) y **Courier Prime** (papel), en `assets/fonts/` con su licencia OFL |
+| Fuentes          | **Jersey 10** (títulos, botones y cifras), **Jersey 15** (lectura y datos destacados), **Fat Fish Pixel** (etiquetas) y **Courier Prime** (papel), en `assets/fonts/` con su licencia OFL |
 
 **Fat Fish Pixel** es Press Start 2P con las mayúsculas acentuadas (Á É Í Ó Ú Ñ Ü) a altura completa, como la fuente
 `fat-fish-acentos` de la PWA: en la original parecen minúsculas. Se genera con
