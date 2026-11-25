@@ -232,6 +232,12 @@ dart run tool/generate_logo.dart
 Los iconos de instalación se generan desde `assets/icon/`, con fondo `#0B1416`. El icono adaptativo Android
 usa un margen de 20 % para mantener el emblema completo al aplicar distintas máscaras del launcher.
 
+La barra inferior reproduce una ficha del juego al confirmar otra sección por toque o al soltar
+un gesto. Tocar la sección activa la regresa a su primera pantalla sin sonido; previsualizar otra
+ficha o cancelar el gesto no cambia la sección ni añade sonido. La ficha respeta **Sonidos de la mesa**, el volumen y la pausa de la app.
+Se exporta desde `GameSynth.cs` con `python3 -I tool/render_navigation_chip.py` (.NET SDK 8+ y
+el checkout hermano del juego); receta y créditos en [`NAVEGACION.md`](assets/sonidos/NAVEGACION.md).
+
 ## 8. Integración continua y flujo de trabajo
 
 GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)) corre en cada Pull Request y en cada cambio a `develop` y `main`:

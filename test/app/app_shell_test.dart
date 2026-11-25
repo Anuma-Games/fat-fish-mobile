@@ -5,6 +5,7 @@ import 'package:fat_fish_mobile/app/app.dart';
 import 'package:fat_fish_mobile/app/app_providers.dart';
 import 'package:fat_fish_mobile/app/nav_bar.dart';
 import 'package:fat_fish_mobile/core/network/api_client.dart';
+import 'package:fat_fish_mobile/core/audio/table_sound.dart';
 import 'package:fat_fish_mobile/core/network/api_exception.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/status_bar_blur.dart';
 import 'package:fat_fish_mobile/core/storage/app_database.dart';
@@ -58,6 +59,12 @@ http.Response answer(http.Request request) => switch (request.url.path) {
   _ => http.Response('', 404),
 };
 
+class _RecordingSound extends SilentTableSound {
+  int chips = 0;
+  @override
+  void navigationChip() => chips++;
+}
+
 void main() {
   // The welcome screen animates its lamp without end; with "reduce motion" it stays
   // still, so pumpAndSettle can finish.
@@ -82,6 +89,7 @@ void main() {
     WidgetTester tester, {
     bool player = false,
     AppDatabase? database,
+    TableSound tableSound = const SilentTableSound(),
   }) async {
     final db = database ?? AppDatabase(NativeDatabase.memory());
     if (player) {
@@ -98,6 +106,7 @@ void main() {
           httpClient: MockClient((request) async => answer(request)),
         ),
         database: db,
+        tableSound: tableSound,
         child: const FatFishApp(),
       ),
     );
@@ -108,7 +117,8 @@ void main() {
   testWidgets('without a player it opens the welcome, not the dossier', (
     tester,
   ) async {
-    await pumpApp(tester);
+    final sound = _RecordingSound();
+    await pumpApp(tester, tableSound: sound);
 
     expect(find.bySemanticsLabel('Fat Fish'), findsOneWidget);
     expect(find.byType(FatFishNavBar), findsNothing);
@@ -122,6 +132,10 @@ void main() {
     await tester.tap(tab('Expediente'));
     await tester.pumpAndSettle();
     expect(find.text('Buscar mi jugador'), findsOneWidget);
+    expect(
+      sound.chips,
+      1,
+    ); // The dossier redirect still confirms one bar selection.
   });
 
   testWidgets('choosing a player opens the dossier', (tester) async {
@@ -162,26 +176,92 @@ void main() {
     expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
   });
 
-  testWidgets('switches tabs by tapping and by sliding along the bar', (
+  testWidgets('one chip per confirmed section change by tap or drag', (
     tester,
   ) async {
-    await pumpApp(tester, player: true);
+    final sound = _RecordingSound();
+    await pumpApp(tester, player: true, tableSound: sound);
+    expect(sound.chips, 0); // Opening the app is not a section change.
     int open() =>
         tester.widget<FatFishNavBar>(find.byType(FatFishNavBar)).currentIndex;
 
     await tester.tap(tab('Mesa'));
     await tester.pumpAndSettle();
     expect(open(), 1);
+    expect(sound.chips, 1);
+    await tester.tap(tab('Mesa'));
+    await tester.tap(tab('Mesa'));
+    await tester.pumpAndSettle();
+    expect(sound.chips, 1); // Retapping the active chip is silent.
     expect(find.text('Toca la ruleta\npara girarla...'), findsOneWidget);
 
     // Slide from the table to the ranking and lift the finger there.
     final from = tester.getCenter(tab('Mesa'));
     final to = tester.getCenter(tab('Ranking'));
-    await tester.dragFrom(from, to - from);
+    final gesture = await tester.startGesture(from);
+    await gesture.moveTo(to);
+    await tester.pump();
+    expect(open(), 1);
+    expect(sound.chips, 1); // Previewing another tab is silent.
+    await gesture.up();
     await tester.pumpAndSettle();
     expect(open(), 2);
+    expect(sound.chips, 2);
     expect(find.text('Las mejores partidas'), findsOneWidget);
   });
+
+  testWidgets('tapping the open tab returns to its first screen silently', (
+    tester,
+  ) async {
+    final sound = _RecordingSound();
+    await pumpApp(tester, player: true, tableSound: sound);
+    await tester.scrollUntilVisible(find.text('Ver la partida'), 200);
+    await tester.tap(find.text('Ver la partida'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cada partida, anotada'), findsOneWidget);
+
+    await tester.tap(tab('Expediente'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cada partida, anotada'), findsNothing);
+    expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
+    expect(sound.chips, 0);
+  });
+
+  testWidgets(
+    'rapid repeated taps emit one chip and an active-tab drag stays silent',
+    (tester) async {
+      final sound = _RecordingSound();
+      await pumpApp(tester, player: true, tableSound: sound);
+      await tester.tap(tab('Mesa'));
+      await tester.tap(tab('Mesa'));
+      await tester.pumpAndSettle();
+      expect(sound.chips, 1);
+
+      final from = tester.getCenter(tab('Mesa'));
+      final to = tester.getCenter(tab('Ranking'));
+      final cancelled = await tester.startGesture(from);
+      await cancelled.moveTo(to);
+      await tester.pump();
+      await cancelled.cancel();
+      await tester.pumpAndSettle();
+      expect(sound.chips, 1);
+      expect(
+        tester.widget<FatFishNavBar>(find.byType(FatFishNavBar)).currentIndex,
+        1,
+      );
+
+      final returned = await tester.startGesture(from);
+      await returned.moveTo(to);
+      await returned.moveTo(from);
+      await returned.up();
+      await tester.pumpAndSettle();
+      expect(sound.chips, 1);
+      expect(
+        tester.widget<FatFishNavBar>(find.byType(FatFishNavBar)).currentIndex,
+        1,
+      );
+    },
+  );
 
   testWidgets('the speaker and the gear of the top bar, remembered on reopen', (
     tester,

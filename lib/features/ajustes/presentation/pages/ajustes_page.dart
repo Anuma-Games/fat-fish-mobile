@@ -83,7 +83,7 @@ class AjustesPage extends StatelessWidget {
                 const Divider(height: 1, thickness: 1),
                 _SwitchRow(
                   title: 'Sonidos de la mesa',
-                  detail: 'Clics de la bola y caída en la casilla.',
+                  detail: 'Bola, ruleta y fichas al cambiar de sección.',
                   value: settings.tableSoundsOn,
                   onChanged: (_) => cubit.toggleTableSounds(),
                 ),

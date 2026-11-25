@@ -21,6 +21,9 @@ abstract interface class TableSound {
   Future<void> pause();
   Future<void> resume();
 
+  /// One chip on the felt, for a confirmed change of navigation section.
+  void navigationChip();
+
   /// The croupier releasing the ball, once at the start of an animated spin.
   void launch();
 
@@ -50,6 +53,8 @@ class SilentTableSound implements TableSound {
   Future<void> pause() async {}
   @override
   Future<void> resume() async {}
+  @override
+  void navigationChip() {}
   @override
   void launch() {}
   @override
@@ -88,6 +93,11 @@ class AudioTableSound implements TableSound {
   AudioSource? _roll;
   AudioSource? _launch;
   AudioSource? _switchOn;
+  AudioSource? _navigationSource;
+  SoundHandle? _navigationHandle;
+
+  /// Level of the navigation chip; the master volume applies on top.
+  static const _navigationGain = 1.0;
   final _hits = <AudioSource>[];
   int _lastHit = -1;
 
@@ -165,6 +175,7 @@ class AudioTableSound implements TableSound {
   void _hold() {
     _ambience = null;
     _rolling = null;
+    _navigationHandle = null;
     _safe(() {
       // Stop transient clicks, the fall and the lamp relay too, not just loops.
       if (_loaded) _soloud.stopAll();
@@ -173,7 +184,8 @@ class AudioTableSound implements TableSound {
 
   void _stopEffects() {
     stopRoll();
-    for (final source in [_launch, _switchOn, ..._hits]) {
+    _navigationHandle = null;
+    for (final source in [_launch, _switchOn, _navigationSource, ..._hits]) {
       for (final handle in [...?source?.handles]) {
         unawaited(_safeAsync(() => _soloud.stop(handle)));
       }
@@ -188,6 +200,22 @@ class AudioTableSound implements TableSound {
   @override
   void launch() {
     if (_effectsAudible) _safe(() => _play(_launch, 0.7 * _hitGain));
+  }
+
+  @override
+  void navigationChip() {
+    if (!_effectsAudible || _volume <= 0) return;
+    _safe(() {
+      // A quick second change cuts the previous chip instead of piling up.
+      final previous = _navigationHandle;
+      if (previous != null && _soloud.getIsValidVoiceHandle(previous)) {
+        unawaited(_safeAsync(() => _soloud.stop(previous)));
+      }
+      _navigationHandle = _soloud.play(
+        _navigationSource!,
+        volume: _navigationGain,
+      );
+    });
   }
 
   @override
@@ -276,6 +304,7 @@ class AudioTableSound implements TableSound {
     _roll = await load('roulette/roll');
     _launch = await load('roulette/launch');
     _switchOn = await load('encendido');
+    _navigationSource = await load('navegacion');
     _hits.clear();
     for (var i = 1; i <= _hitCount; i++) {
       _hits.add(await load('roulette/hit_${i.toString().padLeft(2, '0')}'));
