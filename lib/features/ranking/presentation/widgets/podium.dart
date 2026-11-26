@@ -77,8 +77,8 @@ class _Step extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontFamily: FatFishFonts.body,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+              fontSize: 17,
+              fontWeight: FontWeight.w400,
               color: FatFishColors.cream100,
             ),
           ),

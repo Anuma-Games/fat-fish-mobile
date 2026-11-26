@@ -65,7 +65,6 @@ Requiere Flutter 3.47.7 (canal stable); para el APK, Android SDK y Java 17.
 | `API_KEY`            | Llave de la cabecera `X-Api-Key`; se pide al responsable de la API         | Vacía (la API local no la pide)                                         |
 | `SENTRY_DSN`         | DSN del proyecto `fat-fish-mobile` en Sentry (errores y rendimiento)       | Vacío: Sentry desactivado (pruebas y CI)                                |
 | `SENTRY_ENVIRONMENT` | Ambiente que se muestra en Sentry (`development`, `staging`, `production`) | `development`                                                           |
-| `SENTRY_TEST_BUTTON` | `true` muestra un botón que lanza un error de prueba para verificar Sentry | `false`                                                                 |
 
 - El HTTP sin cifrar solo se permite en depuración. En un iPhone conviene usar la API en `https`.
 - La llave queda dentro del APK y se puede extraer, así que solo debe abrir endpoints de lectura pública.
@@ -172,7 +171,7 @@ medidas.
 | Rojo             | `#B3261E`, el único: pérdida, derrota y peligro; como texto solo sobre papel                                                                   |
 | Texto            | `#F2E8CC` y `#9AA8A2`                                                                                                                          |
 | Papel y tinta    | `#E6DCC3` y `#231E17`                                                                                                                          |
-| Fuentes          | **Jersey 10** (títulos), **Fat Fish Pixel** (etiquetas), **Geist** (texto) y **Courier Prime** (papel), en `assets/fonts/` con su licencia OFL |
+| Fuentes          | **Jersey 10** (títulos, botones y cifras), **Jersey 15** (lectura y datos destacados), **Fat Fish Pixel** (etiquetas) y **Courier Prime** (papel), en `assets/fonts/` con su licencia OFL |
 
 **Fat Fish Pixel** es Press Start 2P con las mayúsculas acentuadas (Á É Í Ó Ú Ñ Ü) a altura completa, como la fuente
 `fat-fish-acentos` de la PWA: en la original parecen minúsculas. Se genera con
@@ -185,11 +184,69 @@ de la barra superior y guarda en el teléfono el ambiente de fondo, los sonidos 
 vibración; la bocina de la barra enciende y apaga el ambiente. El sonido empieza apagado, se pausa cuando la app pasa a segundo plano y, con "reducir
 movimiento", la ruleta da el resultado sin animación.
 
-Los sonidos de la mesa son los de `sonido-mesa.ts` de la PWA (ambiente del cuarto, zumbido de la lámpara, clics de la
-bola y su caída), grabados como WAV en `assets/sonidos/` con `python3 -I tool/sonidos_mesa.py`. Los reproduce SoLoud (`flutter_soloud`),
-un motor de audio para juegos: el ambiente se repite sin cortes y los clics suenan al instante.
+El fondo visual de la mesa (`assets/images/mesa.jpg`) se exporta desde el escenario actual de Unity,
+sin HUD y con el encuadre original del juego: conserva al crupier, la mesa y el local.
+El exportador ejecuta el constructor de ruleta de la partida antes de renderizar, para incluir
+el tazón y las casillas actuales en lugar del modelo antiguo de la escena guardada.
+La app mantiene el recorte anterior, con un degradado más ligero para mostrar mejor al crupier;
+la altura del fondo acompaña la escala
+de la ruleta para que la foto no quede detrás de los resultados en teléfonos más bajos.
+La exportación se documenta en [`tool/unity/README.md`](tool/unity/README.md).
 
-El ícono de la app sale de `assets/icon/` y se regenera con `dart run flutter_launcher_icons`.
+El fondo musical es una exportación instrumental de `GameSynth.cs`, el sintetizador de la mesa del juego:
+jazz nocturno a 86 BPM, con bajo caminante, acordes con swing, escobillas y vibráfono. Usa la versión tranquila
+(tensión 0, sin jefe), sin conversaciones ni grabaciones de bares. El bucle dura 44.651 segundos, cuatro vueltas
+de la progresión Am7–Dm7–Bbmaj7–E7(b9).
+
+Para exportar solo la música: `python3 -I tool/render_gamesynth.py`. Requiere .NET SDK 8+ y el repositorio
+hermano `fat-fish-game`; se puede indicar otra ruta con `--source /ruta/GameSynth.cs`. Se ejecuta el callback
+C# original con un adaptador mínimo, sin abrir Unity ni modificar el juego. Los créditos están en
+`assets/sonidos/CREDITS.md`.
+
+La ruleta usa las mismas grabaciones del juego (`assets/sonidos/roulette/`): lanzamiento, rodado,
+14 golpes. Se copian sin procesar con `python3 -I tool/import_roulette.py`,
+desde `fat-fish-game/Assets/Resources/Audio/Roulette`; acepta otra ruta con `--source`.
+El roce del borde usa `roll.wav` con un nivel suave y su tono natural, sin barrido de velocidad;
+se desvanece durante la bajada y se detiene al llegar a las casillas. Conserva el lanzamiento breve y los golpes individuales,
+con variaciones ligeras de tono y sin repetir inmediatamente la misma toma. Al entrar en su casilla
+definitiva se detiene el rodado y se reproduce un único golpe del mismo banco, junto con la vibración; no se añade
+un clic al terminar la animación.
+
+Para exportar música, importar la ruleta y regenerar el encendido de la lámpara:
+`python3 -I tool/sonidos_mesa.py` (requiere .NET SDK 8+ y el código del juego).
+SoLoud (`flutter_soloud`) aplica los 10 niveles guardados como volumen
+maestro, también a los sonidos en curso, y limita los picos de la mezcla a −1 dBFS. Al pasar a segundo plano se
+detienen todos los sonidos, incluidos los efectos cortos; al volver se recupera el ambiente si estaba activado.
+
+El logo aprobado está en `assets/icon/source/fat_fish_logo.png`. `tool/generate_logo.dart` exporta el mismo
+logo para la app, el README y las pantallas de arranque Android/iOS, y regenera los iconos de instalación.
+La app y el README usan una exportación de 512 px; las reducciones promedian los píxeles para suavizar
+los bordes. El original se conserva para regenerar los recursos y el icono adaptativo.
+Para actualizarlo, reemplaza el archivo fuente y ejecuta desde la raíz del repositorio:
+
+```bash
+dart run tool/generate_logo.dart
+```
+
+Los iconos de instalación se generan desde `assets/icon/`, con fondo `#0B1416`. El icono adaptativo Android
+usa un margen de 20 % para mantener el emblema completo al aplicar distintas máscaras del launcher.
+
+La barra inferior reproduce una ficha del juego al confirmar otra sección por toque o al soltar
+un gesto. Tocar la sección activa la regresa a su primera pantalla sin sonido; previsualizar otra
+ficha o cancelar el gesto no cambia la sección ni añade sonido. La ficha respeta **Sonidos de la mesa**, el volumen y la pausa de la app.
+Se exporta desde `GameSynth.cs` con `python3 -I tool/render_navigation_chip.py` (.NET SDK 8+ y
+el checkout hermano del juego); receta y créditos en [`NAVEGACION.md`](assets/sonidos/NAVEGACION.md).
+
+El retroceso de las pantallas apiladas usa las rutas de plataforma: arrastre desde el borde
+izquierdo en iOS (se puede cancelar), y gesto/botón Atrás en Android. Ajustes, búsqueda e
+historial vuelven a la pantalla anterior conservando el jugador. Las fichas inferiores
+conservan sus propias rutas. Al volver se cierra primero la pantalla apilada y después
+se recorre el historial de las últimas 5 visitas a secciones durante la sesión, sin modificar el jugador.
+En una sección raíz, arrastrar hacia la derecha desde el borde izquierdo vuelve a la última
+sección visitada; desde el centro se mantiene el recorrido por orden. Desde el contenido
+de una sección raíz, un swipe a la izquierda abre la siguiente ficha y a la derecha la anterior,
+sin volver del último extremo al primero. Las pantallas apiladas conservan su gesto de retroceso.
+Inventario y prueba en iPhone: [`FF-188-retroceso.md`](docs/qa/FF-188-retroceso.md).
 
 ## 8. Integración continua y flujo de trabajo
 
@@ -213,3 +270,9 @@ GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)) corre en cada Pull Request
 - Jesús Antonio Jiménez Mendoza
 - Ángel Gael Jurado Rodríguez
 - Andrik Rivera Esquer
+
+## Descargas y almacenamiento de CI
+
+La última compilación comprobada de `main` se conserva en Releases sin caducidad.
+Consulta la [política de descargas y limpieza automática](.github/ARTIFACTS.md) para conocer
+los archivos disponibles, la retención temporal en Actions y cómo previsualizar la limpieza.

@@ -18,7 +18,4 @@ abstract final class AppConfig {
     'SENTRY_ENVIRONMENT',
     defaultValue: 'development',
   );
-
-  /// Shows a button that throws a test error, to check that Sentry receives it.
-  static const sentryTestButton = bool.fromEnvironment('SENTRY_TEST_BUTTON');
 }
