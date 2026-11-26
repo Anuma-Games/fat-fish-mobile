@@ -170,7 +170,7 @@ jobs:
           sparse-checkout: .github/scripts
 
       - name: Descargar el build comprobado de esta ejecución
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: fat-fish-mobile-apk
           path: release-input
