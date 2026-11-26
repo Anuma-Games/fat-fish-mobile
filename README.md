@@ -238,6 +238,17 @@ ficha o cancelar el gesto no cambia la sección ni añade sonido. La ficha respe
 Se exporta desde `GameSynth.cs` con `python3 -I tool/render_navigation_chip.py` (.NET SDK 8+ y
 el checkout hermano del juego); receta y créditos en [`NAVEGACION.md`](assets/sonidos/NAVEGACION.md).
 
+El retroceso de las pantallas apiladas usa las rutas de plataforma: arrastre desde el borde
+izquierdo en iOS (se puede cancelar), y gesto/botón Atrás en Android. Ajustes, búsqueda e
+historial vuelven a la pantalla anterior conservando el jugador. Las fichas inferiores
+conservan sus propias rutas. Al volver se cierra primero la pantalla apilada y después
+se recorre el historial de las últimas 5 visitas a secciones durante la sesión, sin modificar el jugador.
+En una sección raíz, arrastrar hacia la derecha desde el borde izquierdo vuelve a la última
+sección visitada; desde el centro se mantiene el recorrido por orden. Desde el contenido
+de una sección raíz, un swipe a la izquierda abre la siguiente ficha y a la derecha la anterior,
+sin volver del último extremo al primero. Las pantallas apiladas conservan su gesto de retroceso.
+Inventario y prueba en iPhone: [`FF-188-retroceso.md`](docs/qa/FF-188-retroceso.md).
+
 ## 8. Integración continua y flujo de trabajo
 
 GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)) corre en cada Pull Request y en cada cambio a `develop` y `main`:
