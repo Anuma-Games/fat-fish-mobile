@@ -39,6 +39,7 @@ flutter:
     - assets/images/fat_fish.png
     - assets/images/mesa.jpg
     - assets/sonidos/
+    - assets/sonidos/roulette/
     - assets/fonts/OFL-Jersey15.txt
 
   fonts:

@@ -12,7 +12,7 @@ import 'package:fat_fish_mobile/features/jugador/presentation/cubit/my_player_cu
 import 'package:fat_fish_mobile/features/jugador/presentation/pages/jugador_page.dart';
 import 'package:fat_fish_mobile/features/mesa/presentation/pages/mesa_page.dart';
 import 'package:fat_fish_mobile/features/ranking/presentation/pages/ranking_page.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -41,21 +41,24 @@ GoRouter buildRouter(MyPlayerCubit myPlayer, {required Listenable refresh}) {
       GoRoute(
         name: 'bienvenida',
         path: AppRoutes.bienvenida,
-        builder: (context, state) => const BienvenidaPage(),
+        pageBuilder: (context, state) =>
+            _nativePage(state, const BienvenidaPage()),
       ),
       GoRoute(
         name: 'ajustes',
         path: AppRoutes.ajustes,
-        builder: (context, state) => const AjustesPage(),
+        pageBuilder: (context, state) =>
+            _nativePage(state, const AjustesPage()),
       ),
       GoRoute(
         name: 'jugador',
         path: AppRoutes.jugador,
-        builder: (context, state) => const JugadorPage(),
+        pageBuilder: (context, state) =>
+            _nativePage(state, const JugadorPage()),
       ),
       StatefulShellRoute(
-        builder: (context, state, navigationShell) =>
-            AppShell(navigationShell: navigationShell),
+        pageBuilder: (context, state, navigationShell) =>
+            _nativePage(state, AppShell(navigationShell: navigationShell)),
         navigatorContainerBuilder: (context, navigationShell, children) =>
             FadeBranchContainer(
               currentIndex: navigationShell.currentIndex,
@@ -68,18 +71,20 @@ GoRouter buildRouter(MyPlayerCubit myPlayer, {required Listenable refresh}) {
               // The dossier and its history share one Cubit, given above both pages.
               ShellRoute(
                 observers: [SentryNavigatorObserver()],
-                builder: (context, state, child) =>
-                    ExpedienteScope(child: child),
+                pageBuilder: (context, state, child) =>
+                    _nativePage(state, ExpedienteScope(child: child)),
                 routes: [
                   GoRoute(
                     name: 'expediente',
                     path: AppRoutes.expediente,
-                    builder: (context, state) => const ExpedientePage(),
+                    pageBuilder: (context, state) =>
+                        _nativePage(state, const ExpedientePage()),
                     routes: [
                       GoRoute(
                         name: 'historial',
                         path: 'historial',
-                        builder: (context, state) => const HistorialPage(),
+                        pageBuilder: (context, state) =>
+                            _nativePage(state, const HistorialPage()),
                       ),
                     ],
                   ),
@@ -93,7 +98,8 @@ GoRouter buildRouter(MyPlayerCubit myPlayer, {required Listenable refresh}) {
               GoRoute(
                 name: 'mesa',
                 path: AppRoutes.mesa,
-                builder: (context, state) => const MesaPage(),
+                pageBuilder: (context, state) =>
+                    _nativePage(state, const MesaPage()),
               ),
             ],
           ),
@@ -103,7 +109,8 @@ GoRouter buildRouter(MyPlayerCubit myPlayer, {required Listenable refresh}) {
               GoRoute(
                 name: 'ranking',
                 path: AppRoutes.ranking,
-                builder: (context, state) => const RankingPage(),
+                pageBuilder: (context, state) =>
+                    _nativePage(state, const RankingPage()),
               ),
             ],
           ),
@@ -112,6 +119,23 @@ GoRouter buildRouter(MyPlayerCubit myPlayer, {required Listenable refresh}) {
     ],
   );
 }
+
+// Use the same MaterialPage class as this app's MaterialApp explicitly. The
+// router's automatic adapter can otherwise fall back to NoTransitionPage when
+// its Material package and the app's SDK Material widgets have different types.
+// Keeping standard platform routes preserves iOS interactive back/cancellation
+// and Android back handling; a drag detector around the screen would not.
+MaterialPage<void> _nativePage(GoRouterState state, Widget child) =>
+    MaterialPage<void>(
+      key: state.pageKey,
+      name: state.name ?? state.path,
+      arguments: <String, String>{
+        ...state.pathParameters,
+        ...state.uri.queryParameters,
+      },
+      restorationId: state.pageKey.value,
+      child: child,
+    );
 
 /// Tells the router to run its redirect again every time [stream] emits.
 /// Its owner disposes it, since GoRouter does not.

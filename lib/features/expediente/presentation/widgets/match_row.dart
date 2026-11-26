@@ -3,19 +3,12 @@ import 'package:fat_fish_mobile/features/expediente/domain/entities/played_match
 import 'package:fat_fish_mobile/features/expediente/presentation/formatters/expediente_text.dart';
 import 'package:flutter/material.dart';
 
-/// One match of the history: round badge, result, date and length, score and loss.
+/// Match details on the left; points and the net result of spins on the right.
 class MatchRow extends StatelessWidget {
-  const MatchRow(
-    this.match, {
-    super.key,
-    this.showInvested = false,
-    this.onTap,
-  });
+  const MatchRow(this.match, {super.key, this.onTap});
 
   final PlayedMatch match;
 
-  /// The history adds "de $2,350" under the score; the dossier leaves it out.
-  final bool showInvested;
   final VoidCallback? onTap;
 
   @override
@@ -29,46 +22,50 @@ class MatchRow extends StatelessWidget {
           horizontal: FatFishSpacing.s4,
           vertical: FatFishSpacing.s2,
         ),
-        child: Row(
-          children: [
-            RoundBadge(round: match.roundReached, result: match.result),
-            const SizedBox(width: FatFishSpacing.s3),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    resultName(match.result),
-                    style: textTheme.headlineSmall,
-                  ),
-                  Text(
-                    '${formatLongDate(match.playedAt)}, '
-                    '${formatMatchDuration(match.durationSeconds)}',
-                    style: textTheme.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: FatFishSpacing.s2),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${formatNumber(match.score)} pts',
-                  style: textTheme.headlineSmall?.copyWith(fontSize: 22),
+        child: LayoutBuilder(
+          builder: (context, constraints) => Row(
+            children: [
+              RoundBadge(round: match.roundReached, result: match.result),
+              const SizedBox(width: FatFishSpacing.s3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      resultName(match.result),
+                      style: textTheme.headlineSmall,
+                    ),
+                    Text(
+                      '${formatLongDate(match.playedAt)}, '
+                      '${formatMatchDuration(match.durationSeconds)}',
+                      style: textTheme.bodySmall,
+                    ),
+                  ],
                 ),
-                if (showInvested)
-                  Text(
-                    'de ${formatMoney(match.moneyInvested)}',
-                    style: textTheme.bodySmall,
-                  ),
-                if (match.moneyLost > 0) ...[
-                  const SizedBox(height: 2),
-                  LossChip(match.moneyLost),
-                ],
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(width: FatFishSpacing.s2),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: constraints.maxWidth * 0.45,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '${formatNumber(match.score)} pts',
+                        style: textTheme.headlineSmall?.copyWith(fontSize: 22),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    _SpinBalance(match.moneyWon - match.moneyInvested),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -155,28 +152,41 @@ class RoundBadge extends StatelessWidget {
   }
 }
 
-/// Money lost in one match: cream text on the red, since the red only goes as text on paper.
-class LossChip extends StatelessWidget {
-  const LossChip(this.amount, {super.key});
+/// Net result of spins, not the final wallet balance or the sum of losing bets.
+class _SpinBalance extends StatelessWidget {
+  const _SpinBalance(this.amount);
 
   final int amount;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      decoration: const BoxDecoration(
-        color: FatFishColors.red,
-        borderRadius: BorderRadius.all(FatFishRadius.field),
-      ),
-      child: Text(
-        '-${formatMoney(amount)}',
-        style: const TextStyle(
-          fontFamily: FatFishFonts.body,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          height: 20 / 16,
-          color: FatFishColors.cream100,
+    final money = formatMoney(amount.abs());
+    final text = amount > 0 ? '+$money' : (amount < 0 ? '−$money' : money);
+    final description = amount > 0
+        ? 'Ganancia en jugadas: $money'
+        : (amount < 0
+              ? 'Pérdida en jugadas: $money'
+              : 'Jugadas sin ganancia ni pérdida');
+
+    return Semantics(
+      label: description,
+      excludeSemantics: true,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            // Cream on a fill, like the game: felt green for a gain, red for a loss.
+            color: amount > 0
+                ? FatFishColors.felt700
+                : (amount < 0 ? FatFishColors.red : null),
+            borderRadius: const BorderRadius.all(FatFishRadius.field),
+          ),
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(fontSize: 22, color: FatFishColors.cream100),
+          ),
         ),
       ),
     );

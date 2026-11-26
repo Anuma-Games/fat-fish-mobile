@@ -43,9 +43,7 @@ class AjustesPage extends StatelessWidget {
                 // The design's background music; here the room of the PWA plays.
                 _SwitchRow(
                   title: 'Ambiente de fondo',
-                  detail:
-                      'El cuarto y el zumbido de la lámpara en bucle mientras '
-                      'navegas.',
+                  detail: 'Jazz nocturno del juego en bucle mientras navegas.',
                   value: settings.ambienceOn,
                   onChanged: (_) => cubit.toggleAmbience(),
                 ),
@@ -85,7 +83,7 @@ class AjustesPage extends StatelessWidget {
                 const Divider(height: 1, thickness: 1),
                 _SwitchRow(
                   title: 'Sonidos de la mesa',
-                  detail: 'Clics de la bola y caída en la casilla.',
+                  detail: 'Bola, ruleta y fichas al cambiar de sección.',
                   value: settings.tableSoundsOn,
                   onChanged: (_) => cubit.toggleTableSounds(),
                 ),
