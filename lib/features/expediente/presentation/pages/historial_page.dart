@@ -102,8 +102,8 @@ class _History extends StatelessWidget {
                 player.alias,
                 style: const TextStyle(
                   fontFamily: FatFishFonts.body,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w400,
                   color: FatFishColors.cream100,
                 ),
               ),
@@ -137,7 +137,7 @@ class _History extends StatelessWidget {
                 Appear(
                   key: ValueKey(match.id),
                   delay: FatFishMotion.stagger * (index % matchPageSize),
-                  child: MatchRow(match, showInvested: true),
+                  child: MatchRow(match),
                 ),
             ],
           ),

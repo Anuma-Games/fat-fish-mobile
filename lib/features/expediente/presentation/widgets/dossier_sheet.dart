@@ -49,8 +49,12 @@ class DossierSheet extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _SheetTab('EXPEDIENTE N.º ${profile.id}'),
-              const Spacer(),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: _SheetTab('EXPEDIENTE N.º ${profile.id}'),
+                ),
+              ),
               if (onChangePlayer case final onChangePlayer?)
                 _ChangeButton(onPressed: onChangePlayer),
             ],
@@ -160,8 +164,8 @@ class _ChangeButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: FatFishSpacing.s1),
         textStyle: const TextStyle(
           fontFamily: FatFishFonts.body,
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
+          fontSize: 17,
+          fontWeight: FontWeight.w400,
         ),
       ),
       icon: const PixelIcon(

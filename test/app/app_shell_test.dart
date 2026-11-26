@@ -5,6 +5,7 @@ import 'package:fat_fish_mobile/app/app.dart';
 import 'package:fat_fish_mobile/app/app_providers.dart';
 import 'package:fat_fish_mobile/app/nav_bar.dart';
 import 'package:fat_fish_mobile/core/network/api_client.dart';
+import 'package:fat_fish_mobile/core/audio/table_sound.dart';
 import 'package:fat_fish_mobile/core/network/api_exception.dart';
 import 'package:fat_fish_mobile/core/presentation/widgets/status_bar_blur.dart';
 import 'package:fat_fish_mobile/core/storage/app_database.dart';
@@ -62,6 +63,12 @@ http.Response answer(http.Request request) => switch (request.url.path) {
   _ => http.Response('', 404),
 };
 
+class _RecordingSound extends SilentTableSound {
+  int chips = 0;
+  @override
+  void navigationChip() => chips++;
+}
+
 void main() {
   // The welcome screen animates its lamp without end; with "reduce motion" it stays
   // still, so pumpAndSettle can finish.
@@ -86,6 +93,7 @@ void main() {
     WidgetTester tester, {
     bool player = false,
     AppDatabase? database,
+    TableSound tableSound = const SilentTableSound(),
   }) async {
     final db = database ?? AppDatabase(NativeDatabase.memory());
     if (player) {
@@ -102,6 +110,7 @@ void main() {
           httpClient: MockClient((request) async => answer(request)),
         ),
         database: db,
+        tableSound: tableSound,
         child: const FatFishApp(),
       ),
     );
@@ -112,24 +121,31 @@ void main() {
   testWidgets('without a player it opens the welcome, not the dossier', (
     tester,
   ) async {
-    await pumpApp(tester);
+    final sound = _RecordingSound();
+    await pumpApp(tester, tableSound: sound);
 
     expect(find.bySemanticsLabel('Fat Fish'), findsOneWidget);
     expect(find.byType(FatFishNavBar), findsNothing);
 
+    await tester.ensureVisible(find.text('Ver el ranking mundial'));
     await tester.tap(find.text('Ver el ranking mundial'));
     await tester.pumpAndSettle();
-    expect(find.text('Mejores puntajes'), findsOneWidget);
+    expect(find.text('Las mejores partidas'), findsOneWidget);
 
     // The dossier needs a player: its tab leads back to the welcome.
     await tester.tap(tab('Expediente'));
     await tester.pumpAndSettle();
     expect(find.text('Buscar mi jugador'), findsOneWidget);
+    expect(
+      sound.chips,
+      1,
+    ); // The dossier redirect still confirms one bar selection.
   });
 
   testWidgets('choosing a player opens the dossier', (tester) async {
     final db = await pumpApp(tester);
 
+    await tester.ensureVisible(find.text('Buscar mi jugador'));
     await tester.tap(find.text('Buscar mi jugador'));
     await tester.pumpAndSettle();
     expect(find.text('¿Quién eres en la mesa?'), findsOneWidget);
@@ -164,26 +180,92 @@ void main() {
     expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
   });
 
-  testWidgets('switches tabs by tapping and by sliding along the bar', (
+  testWidgets('one chip per confirmed section change by tap or drag', (
     tester,
   ) async {
-    await pumpApp(tester, player: true);
+    final sound = _RecordingSound();
+    await pumpApp(tester, player: true, tableSound: sound);
+    expect(sound.chips, 0); // Opening the app is not a section change.
     int open() =>
         tester.widget<FatFishNavBar>(find.byType(FatFishNavBar)).currentIndex;
 
     await tester.tap(tab('Mesa'));
     await tester.pumpAndSettle();
     expect(open(), 1);
+    expect(sound.chips, 1);
+    await tester.tap(tab('Mesa'));
+    await tester.tap(tab('Mesa'));
+    await tester.pumpAndSettle();
+    expect(sound.chips, 1); // Retapping the active chip is silent.
     expect(find.text('Toca la ruleta\npara girarla...'), findsOneWidget);
 
     // Slide from the table to the ranking and lift the finger there.
     final from = tester.getCenter(tab('Mesa'));
     final to = tester.getCenter(tab('Ranking'));
-    await tester.dragFrom(from, to - from);
+    final gesture = await tester.startGesture(from);
+    await gesture.moveTo(to);
+    await tester.pump();
+    expect(open(), 1);
+    expect(sound.chips, 1); // Previewing another tab is silent.
+    await gesture.up();
     await tester.pumpAndSettle();
     expect(open(), 2);
-    expect(find.text('Mejores puntajes'), findsOneWidget);
+    expect(sound.chips, 2);
+    expect(find.text('Las mejores partidas'), findsOneWidget);
   });
+
+  testWidgets('tapping the open tab returns to its first screen silently', (
+    tester,
+  ) async {
+    final sound = _RecordingSound();
+    await pumpApp(tester, player: true, tableSound: sound);
+    await tester.scrollUntilVisible(find.text('Ver la partida'), 200);
+    await tester.tap(find.text('Ver la partida'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cada partida, anotada'), findsOneWidget);
+
+    await tester.tap(tab('Expediente'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cada partida, anotada'), findsNothing);
+    expect(find.text('EXPEDIENTE N.º 70'), findsOneWidget);
+    expect(sound.chips, 0);
+  });
+
+  testWidgets(
+    'rapid repeated taps emit one chip and an active-tab drag stays silent',
+    (tester) async {
+      final sound = _RecordingSound();
+      await pumpApp(tester, player: true, tableSound: sound);
+      await tester.tap(tab('Mesa'));
+      await tester.tap(tab('Mesa'));
+      await tester.pumpAndSettle();
+      expect(sound.chips, 1);
+
+      final from = tester.getCenter(tab('Mesa'));
+      final to = tester.getCenter(tab('Ranking'));
+      final cancelled = await tester.startGesture(from);
+      await cancelled.moveTo(to);
+      await tester.pump();
+      await cancelled.cancel();
+      await tester.pumpAndSettle();
+      expect(sound.chips, 1);
+      expect(
+        tester.widget<FatFishNavBar>(find.byType(FatFishNavBar)).currentIndex,
+        1,
+      );
+
+      final returned = await tester.startGesture(from);
+      await returned.moveTo(to);
+      await returned.moveTo(from);
+      await returned.up();
+      await tester.pumpAndSettle();
+      expect(sound.chips, 1);
+      expect(
+        tester.widget<FatFishNavBar>(find.byType(FatFishNavBar)).currentIndex,
+        1,
+      );
+    },
+  );
 
   testWidgets('the speaker and the gear of the top bar, remembered on reopen', (
     tester,
@@ -263,7 +345,7 @@ void main() {
         .opacity;
     expect(blurOpacity(), 0);
 
-    await tester.drag(find.text('Mejores puntajes'), const Offset(0, -300));
+    await tester.drag(find.text('Las mejores partidas'), const Offset(0, -300));
     await tester.pumpAndSettle();
     expect(barOffset(), const Offset(0, 1));
     // The blur takes the place of the top bar behind the status bar.
@@ -633,6 +715,26 @@ void main() {
   );
 
   testWidgets(
+    'section swipes and section back play one chip each',
+    (tester) async {
+      final sound = _RecordingSound();
+      await pumpApp(tester, player: true, tableSound: sound);
+      await sectionSwipe(tester);
+      expect(section(tester), 1);
+      expect(sound.chips, 1);
+      await sectionSwipe(tester, distance: 16); // Too short: no change.
+      expect(sound.chips, 1);
+      await sectionBack(tester);
+      expect(section(tester), 0);
+      expect(sound.chips, 2);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
+  testWidgets(
     'short, cancelled and reversed swipes do not consume visits',
     (tester) async {
       await pumpApp(tester, player: true);
@@ -826,5 +928,82 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  group('game typography on narrow phones', () {
+    setUpAll(() async {
+      // Ahem hides real font metrics and can miss wrapping/overflow regressions.
+      for (final family in [
+        'Jersey10',
+        'Jersey15',
+        'FatFishPixel',
+        'CourierPrime',
+      ]) {
+        final loader = FontLoader(family)
+          ..addFont(rootBundle.load('assets/fonts/$family-Regular.ttf'));
+        if (family == 'CourierPrime') {
+          loader.addFont(rootBundle.load('assets/fonts/$family-Bold.ttf'));
+        }
+        await loader.load();
+      }
+    });
+
+    for (final size in [const Size(320, 640), const Size(360, 800)]) {
+      for (final scale in [1.0, 1.3, 2.0]) {
+        for (final player in [false, true]) {
+          testWidgets('$size, text $scale, saved player $player', (
+            tester,
+          ) async {
+            tester.view.physicalSize = size;
+            tester.view.devicePixelRatio = 1;
+            tester.platformDispatcher.textScaleFactorTestValue = scale;
+            addTearDown(() {
+              tester.view.resetPhysicalSize();
+              tester.view.resetDevicePixelRatio();
+              tester.platformDispatcher.clearTextScaleFactorTestValue();
+            });
+            await pumpApp(tester, player: player);
+            expect(tester.takeException(), isNull);
+
+            if (player) {
+              // The tab must wrap while keeping the change-player action usable.
+              await tester.tap(find.text('Cambiar'));
+              await tester.pumpAndSettle();
+              expect(find.byType(TextField), findsOneWidget);
+              await tester.tap(find.byTooltip('Volver'));
+              await tester.pumpAndSettle();
+              for (final name in ['Mesa', 'Ranking']) {
+                await tester.tap(tab(name));
+                await tester.pumpAndSettle();
+                expect(tester.takeException(), isNull, reason: name);
+              }
+              await tester.tap(
+                find.descendant(
+                  of: find.byType(RankingPage),
+                  matching: find.byTooltip('Ajustes'),
+                ),
+              );
+              await tester.pumpAndSettle();
+              expect(find.text('Sonidos de la mesa'), findsOneWidget);
+              expect(tester.takeException(), isNull, reason: 'Ajustes');
+              await tester.tap(find.byTooltip('Volver'));
+              await tester.pumpAndSettle();
+            } else {
+              // Large text makes the welcome taller than the viewport.
+              await tester.ensureVisible(find.text('Buscar mi jugador'));
+              await tester.tap(find.text('Buscar mi jugador'));
+              await tester.pumpAndSettle();
+              await tester.enterText(find.byType(TextField), 'Ángel Muñoz');
+              await tester.pump(const Duration(milliseconds: 400));
+              await tester.pumpAndSettle();
+              expect(find.text('Ángel Muñoz'), findsOneWidget);
+              expect(tester.takeException(), isNull, reason: 'Mi jugador');
+            }
+            await tester.pumpWidget(const SizedBox());
+            await tester.pumpAndSettle();
+          });
+        }
+      }
+    }
   });
 }

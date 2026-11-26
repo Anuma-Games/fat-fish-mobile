@@ -1,4 +1,5 @@
 import 'package:fat_fish_mobile/app/nav_bar.dart';
+import 'package:fat_fish_mobile/core/audio/table_sound.dart';
 import 'package:fat_fish_mobile/core/config/app_config.dart';
 import 'package:fat_fish_mobile/core/presentation/bars_visibility.dart';
 import 'package:fat_fish_mobile/core/presentation/motion.dart';
@@ -10,6 +11,7 @@ import 'package:fat_fish_mobile/features/ajustes/presentation/haptics.dart';
 import 'package:flutter/gestures.dart' show DragStartBehavior;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 /// Casino background and the floating bottom bar around the three tabs. The content
@@ -35,6 +37,7 @@ class _AppShellState extends State<AppShell> {
   static const _sectionHistoryLimit = 5;
   final _barsVisible = ValueNotifier(true);
   final _sectionHistory = <int>[];
+  int? _pendingIndex;
   int? _backTarget;
   int? _swipeFrom;
   bool _swipeBack = false;
@@ -101,6 +104,7 @@ class _AppShellState extends State<AppShell> {
     }
     // A new tab, or a new screen in the same tab, starts with both bars.
     _barsVisible.value = true;
+    _pendingIndex = null;
   }
 
   void _returnToPreviousSection() {
@@ -116,6 +120,7 @@ class _AppShellState extends State<AppShell> {
       if (widget.navigationShell.currentIndex == target) return;
       setState(() {
         _backTarget = null;
+        _pendingIndex = null;
         _sectionHistory.add(target);
       });
     });
@@ -167,11 +172,17 @@ class _AppShellState extends State<AppShell> {
 
   void _openTab(int index) {
     if (_backTarget != null && index != _backTarget) return;
-    widget.navigationShell.goBranch(
-      index,
-      // Tapping the open tab again returns it to its first screen.
-      initialLocation: index == widget.navigationShell.currentIndex,
-    );
+    if (index == widget.navigationShell.currentIndex) {
+      // Tapping the open tab again returns it to its first screen, silently.
+      widget.navigationShell.goBranch(index, initialLocation: true);
+      return;
+    }
+    if (index == _pendingIndex) return;
+    // Deduplicate rapid taps before the router has rebuilt the navigation shell.
+    _pendingIndex = index;
+    widget.navigationShell.goBranch(index);
+    // Also covers Expediente redirecting a guest outside the tab shell to welcome.
+    context.read<TableSound>().navigationChip();
   }
 
   @override
