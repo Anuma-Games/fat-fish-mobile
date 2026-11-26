@@ -5,7 +5,9 @@
 [Descargar la última compilación de main](https://github.com/Anuma-Games/fat-fish-mobile/releases/latest).
 
 Después de pasar todos los jobs de CI, un push a `main` publica `fat-fish-mobile.apk` en Releases.
-El APK sigue siendo de depuración, igual que el build actual de CI.
+En `main` se compila un APK release firmado con la llave permanente y la configuración de producción.
+Los pull requests y `develop` siguen compilando un APK de depuración, sin secretos de producción.
+Sin `ANDROID_KEYSTORE_PATH`, una compilación release local se firma con la llave de depuración.
 No caduca por antigüedad: permanece aunque no haya cambios durante meses o falle el siguiente CI.
 `develop` y los pull requests no reemplazan esta descarga.
 
@@ -16,6 +18,32 @@ El tag apunta al commit compilado; las notas identifican el commit y la ejecuci�
 El job de publicación necesita `contents: write` solo en `main`. No usa PAT ni modifica el código.
 Si se activan releases inmutables o reglas que prohíban borrar estos tags, habrá que adaptar la limpieza;
 no se desactivan esas protecciones automáticamente.
+
+## Firma y configuración de producción
+
+Antes de integrar el cambio en `main`, configura estos secretos de Actions en el repositorio:
+
+| Secreto | Contenido |
+|---------|-----------|
+| `ANDROID_KEYSTORE_BASE64` | Almacén de firma permanente codificado en Base64 |
+| `ANDROID_STORE_PASSWORD` | Contraseña del almacén |
+| `ANDROID_KEY_ALIAS` | Alias de la llave |
+| `ANDROID_KEY_PASSWORD` | Contraseña de la llave |
+| `MOBILE_PRODUCTION_CONFIG_JSON` | JSON con `API_BASE_URL`, `API_KEY`, `SENTRY_DSN` y `SENTRY_ENVIRONMENT` |
+
+La URL de la API debe usar HTTPS y `SENTRY_ENVIRONMENT` debe ser `production`.
+Un `SENTRY_DSN` vacío desactiva Sentry. El botón escolar de prueba ya no existe y no requiere configuración.
+La configuración del cliente queda incorporada al APK; su clave de API debe tener permisos de lectura pública.
+El almacén privado y sus contraseñas no se incluyen en el APK ni se guardan en Git.
+
+El workflow reconstruye los archivos privados en el directorio temporal del runner y los elimina incluso si falla
+la compilación. Comprueba la firma del APK antes de subirlo y usa `github.run_number` como número de compilación.
+Mantén ese número creciente si reemplazas este workflow en el futuro.
+
+Conserva una copia segura del almacén y las contraseñas fuera del equipo de desarrollo. Las siguientes versiones
+deben usar la misma llave para poder instalarse como actualización. Al pasar de una APK debug a esta release,
+puede ser necesario desinstalar la versión debug, perdiendo sus datos locales.
+Publicar una nueva APK no actualiza automáticamente los teléfonos: el usuario debe descargarla e instalarla.
 
 ## Copias temporales de Actions
 
